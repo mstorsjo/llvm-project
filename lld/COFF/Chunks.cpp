@@ -434,6 +434,7 @@ void SectionChunk::applyRelocation(uint8_t *off,
 
   uint64_t s = sym->getRVA();
 
+  uint64_t origErrorCount = errorCount();
   // Compute the RVA of the relocation for relative relocations.
   uint64_t p = rva + rel.VirtualAddress;
   uint64_t imageBase = file->ctx.config.imageBase;
@@ -455,6 +456,9 @@ void SectionChunk::applyRelocation(uint8_t *off,
   default:
     llvm_unreachable("unknown machine type");
   }
+  if (errorCount() > origErrorCount)
+    error("relocation errors in section " + getSectionName() + " from file " +
+          file->getName() + " against symbol " + sym->getName());
 }
 
 // Defend against unsorted relocations. This may be overly conservative.
