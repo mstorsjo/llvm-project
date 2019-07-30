@@ -312,6 +312,7 @@ void LinkerDriver::addArchiveBuffer(MemoryBufferRef mb, StringRef symName,
   }
 
   obj->parentName = parentName;
+  log("Loading " + toString(obj) + " for " + symName);
   ctx.symtab.addFile(obj);
   log("Loaded " + toString(obj) + " for " + symName);
 }
