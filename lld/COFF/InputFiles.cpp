@@ -93,6 +93,7 @@ static void checkAndSetWeakAlias(COFFLinkerContext &ctx, InputFile *f,
       }
     }
     u->setWeakAlias(target, isAntiDep);
+    log("Making " + source->getName() + " an alias for " + target->getName());
   }
 }
 
@@ -132,6 +133,9 @@ void ArchiveFile::addMember(const Archive::Symbol &sym) {
       CHECK(sym.getMember(),
             "could not get the member for symbol " + toCOFFString(ctx, sym));
 
+  Expected<StringRef> name = c.getName();
+  if (name)
+    log("Loading " + toString(this) + "(" + *name + ") for " + sym.getName());
   // Return an empty buffer if we have already returned the same buffer.
   if (!seen.insert(c.getChildOffset()).second)
     return;

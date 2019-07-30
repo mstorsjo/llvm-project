@@ -138,6 +138,7 @@ bool Undefined::resolveWeakAlias() {
   // Symbols. For that reason we need to check which type of symbol we
   // are dealing with and copy the correct number of bytes.
   StringRef name = getName();
+  log("Replacing " + name + " with alias " + d->getName());
   bool wasAntiDep = isAntiDep;
   if (isa<DefinedRegular>(d))
     memcpy(this, d, sizeof(DefinedRegular));

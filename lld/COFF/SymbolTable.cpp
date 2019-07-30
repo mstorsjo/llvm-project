@@ -641,11 +641,14 @@ Symbol *SymbolTable::addUndefined(StringRef name, InputFile *f,
                                   bool overrideLazy) {
   auto [s, wasInserted] = insert(name, f);
   if (wasInserted || (s->isLazy() && overrideLazy)) {
+    log("Adding undefined " + name + " from " + toString(f));
     replaceSymbol<Undefined>(s, name);
     return s;
   }
-  if (s->isLazy())
+  if (s->isLazy()) {
+    log("Loading lazy " + name + " due to undefined in " + toString(f));
     forceLazy(s);
+  }
   return s;
 }
 
@@ -695,6 +698,7 @@ void SymbolTable::addLazyArchive(ArchiveFile *f, const Archive::Symbol &sym) {
     return;
   auto [s, wasInserted] = insert(name);
   if (wasInserted) {
+    log("Adding lazy archive symbol " + name + " from " + toString(f));
     replaceSymbol<LazyArchive>(s, f, sym);
     return;
   }
@@ -703,6 +707,7 @@ void SymbolTable::addLazyArchive(ArchiveFile *f, const Archive::Symbol &sym) {
       s->pendingArchiveLoad)
     return;
   s->pendingArchiveLoad = true;
+  log("Immediately loading lazy " + name + " from " + toString(f) + " as it was undefined before");
   f->addMember(sym);
 }
 
@@ -712,6 +717,7 @@ void SymbolTable::addLazyObject(InputFile *f, StringRef n) {
     return;
   auto [s, wasInserted] = insert(n, f);
   if (wasInserted) {
+    log("Adding lazy object symbol " + n + " from " + toString(f));
     replaceSymbol<LazyObject>(s, f, n);
     return;
   }
@@ -808,9 +814,10 @@ void SymbolTable::reportDuplicate(Symbol *existing, InputFile *newFile,
 Symbol *SymbolTable::addAbsolute(StringRef n, COFFSymbolRef sym) {
   auto [s, wasInserted] = insert(n, nullptr);
   s->isUsedInRegularObj = true;
-  if (wasInserted || isa<Undefined>(s) || s->isLazy())
+  if (wasInserted || isa<Undefined>(s) || s->isLazy()) {
+    log("Added absolute " + n);
     replaceSymbol<DefinedAbsolute>(s, ctx, n, sym);
-  else if (auto *da = dyn_cast<DefinedAbsolute>(s)) {
+  } else if (auto *da = dyn_cast<DefinedAbsolute>(s)) {
     if (da->getVA() != sym.getValue())
       reportDuplicate(s, nullptr);
   } else if (!isa<DefinedCOFF>(s))
@@ -821,9 +828,10 @@ Symbol *SymbolTable::addAbsolute(StringRef n, COFFSymbolRef sym) {
 Symbol *SymbolTable::addAbsolute(StringRef n, uint64_t va) {
   auto [s, wasInserted] = insert(n, nullptr);
   s->isUsedInRegularObj = true;
-  if (wasInserted || isa<Undefined>(s) || s->isLazy())
+  if (wasInserted || isa<Undefined>(s) || s->isLazy()) {
+    log("Added absolute " + n);
     replaceSymbol<DefinedAbsolute>(s, ctx, n, va);
-  else if (auto *da = dyn_cast<DefinedAbsolute>(s)) {
+  } else if (auto *da = dyn_cast<DefinedAbsolute>(s)) {
     if (da->getVA() != va)
       reportDuplicate(s, nullptr);
   } else if (!isa<DefinedCOFF>(s))
@@ -834,9 +842,10 @@ Symbol *SymbolTable::addAbsolute(StringRef n, uint64_t va) {
 Symbol *SymbolTable::addSynthetic(StringRef n, Chunk *c) {
   auto [s, wasInserted] = insert(n, nullptr);
   s->isUsedInRegularObj = true;
-  if (wasInserted || isa<Undefined>(s) || s->isLazy())
+  if (wasInserted || isa<Undefined>(s) || s->isLazy()) {
+    log("Added synthetic " + n);
     replaceSymbol<DefinedSynthetic>(s, n, c);
-  else if (!isa<DefinedCOFF>(s))
+  } else if (!isa<DefinedCOFF>(s))
     reportDuplicate(s, nullptr);
   return s;
 }
@@ -845,10 +854,11 @@ Symbol *SymbolTable::addRegular(InputFile *f, StringRef n,
                                 const coff_symbol_generic *sym, SectionChunk *c,
                                 uint32_t sectionOffset, bool isWeak) {
   auto [s, wasInserted] = insert(n, f);
-  if (wasInserted || !isa<DefinedRegular>(s) || s->isWeak)
+  if (wasInserted || !isa<DefinedRegular>(s) || s->isWeak) {
+    log("Added regular " + n + " from " + toString(f));
     replaceSymbol<DefinedRegular>(s, f, n, /*IsCOMDAT*/ false,
                                   /*IsExternal*/ true, sym, c, isWeak);
-  else if (!isWeak)
+  } else if (!isWeak)
     reportDuplicate(s, f, c, sectionOffset);
   return s;
 }
@@ -858,6 +868,7 @@ SymbolTable::addComdat(InputFile *f, StringRef n,
                        const coff_symbol_generic *sym) {
   auto [s, wasInserted] = insert(n, f);
   if (wasInserted || !isa<DefinedRegular>(s)) {
+    log("Added comdat " + n + " from " + toString(f));
     replaceSymbol<DefinedRegular>(s, f, n, /*IsCOMDAT*/ true,
                                   /*IsExternal*/ true, sym, nullptr);
     return {cast<DefinedRegular>(s), true};
@@ -871,9 +882,10 @@ SymbolTable::addComdat(InputFile *f, StringRef n,
 Symbol *SymbolTable::addCommon(InputFile *f, StringRef n, uint64_t size,
                                const coff_symbol_generic *sym, CommonChunk *c) {
   auto [s, wasInserted] = insert(n, f);
-  if (wasInserted || !isa<DefinedCOFF>(s))
+  if (wasInserted || !isa<DefinedCOFF>(s)) {
+    log("Added common " + n + " from " + toString(f));
     replaceSymbol<DefinedCommon>(s, f, n, size, sym, c);
-  else if (auto *dc = dyn_cast<DefinedCommon>(s))
+  } else if (auto *dc = dyn_cast<DefinedCommon>(s))
     if (size > dc->getSize())
       replaceSymbol<DefinedCommon>(s, f, n, size, sym, c);
   return s;
@@ -884,6 +896,7 @@ DefinedImportData *SymbolTable::addImportData(StringRef n, ImportFile *f,
   auto [s, wasInserted] = insert(n, nullptr);
   s->isUsedInRegularObj = true;
   if (wasInserted || isa<Undefined>(s) || s->isLazy()) {
+    log("Added import data " + n + " from " + toString(f));
     replaceSymbol<DefinedImportData>(s, n, f, location);
     return cast<DefinedImportData>(s);
   }
@@ -897,6 +910,7 @@ Defined *SymbolTable::addImportThunk(StringRef name, DefinedImportData *id,
   auto [s, wasInserted] = insert(name, nullptr);
   s->isUsedInRegularObj = true;
   if (wasInserted || isa<Undefined>(s) || s->isLazy()) {
+    log("Added import thunk " + name + " from " + toString(id->file));
     replaceSymbol<DefinedImportThunk>(s, ctx, name, id, chunk);
     return cast<Defined>(s);
   }
