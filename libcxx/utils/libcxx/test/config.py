@@ -396,7 +396,7 @@ class Configuration(object):
             self.configure_link_flags_abi_library()
             self.configure_extra_library_flags()
         elif self.cxx_stdlib_under_test == 'libstdc++':
-            self.cxx.link_flags += ['-lstdc++fs', '-lm', '-pthread']
+            self.cxx.link_flags += ['-lstdc++fs']
         elif self.cxx_stdlib_under_test == 'msvc':
             # FIXME: Correctly setup debug/release flags here.
             pass
