@@ -397,6 +397,18 @@ void LinkerDriver::parseDirectives(InputFile *file) {
     case OPT_nodefaultlib:
       config->noDefaultLibs.insert(doFindLib(arg->getValue()).lower());
       break;
+    case OPT_auto_import:
+      config->autoImport = true;
+      break;
+    case OPT_auto_import_no:
+      config->autoImport = false;
+      break;
+    case OPT_runtime_pseudo_reloc:
+      config->pseudoRelocs = true;
+      break;
+    case OPT_runtime_pseudo_reloc_no:
+      config->pseudoRelocs = false;
+      break;
     case OPT_section:
       parseSection(arg->getValue());
       break;
