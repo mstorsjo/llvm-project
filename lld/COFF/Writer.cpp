@@ -969,7 +969,7 @@ void Writer::createMiscChunks() {
   if (config->guardCF != GuardCFLevel::Off)
     createGuardCFTables();
 
-  if (config->autoImport)
+  if (config->pseudoRelocs)
     createRuntimePseudoRelocs();
 
   if (config->mingw)
@@ -1708,39 +1708,21 @@ void Writer::maybeAddRVATable(SymbolRVASet tableSymbols, StringRef tableSym,
   cast<DefinedAbsolute>(c)->setVA(tableChunk->getSize() / 4);
 }
 
-// MinGW specific. Gather all relocations that are imported from a DLL even
-// though the code didn't expect it to, produce the table that the runtime
-// uses for fixing them up, and provide the synthetic symbols that the
-// runtime uses for finding the table.
+// MinGW specific. Add the table for fixing up runtime pseudo relocations
+// and provide the synthetic symbols that the runtime uses for finding the
+// table.
 void Writer::createRuntimePseudoRelocs() {
-  std::vector<RuntimePseudoReloc> rels;
-
-  for (Chunk *c : symtab->getChunks()) {
-    auto *sc = dyn_cast<SectionChunk>(c);
-    if (!sc || !sc->live)
-      continue;
-    sc->getRuntimePseudoRelocs(rels);
-  }
-
-  if (!config->pseudoRelocs) {
-    // Not writing any pseudo relocs; if some were needed, error out and
-    // indicate what required them.
-    for (const RuntimePseudoReloc &rpr : rels)
-      error("automatic dllimport of " + rpr.sym->getName() + " in " +
-            toString(rpr.target->file) + " requires pseudo relocations");
+  if (!config->pseudoRelocTable)
     return;
-  }
 
-  if (!rels.empty())
-    log("Writing " + Twine(rels.size()) + " runtime pseudo relocations");
-  PseudoRelocTableChunk *table = make<PseudoRelocTableChunk>(rels);
-  rdataSec->addChunk(table);
+  rdataSec->addChunk(config->pseudoRelocTable);
   EmptyChunk *endOfList = make<EmptyChunk>();
   rdataSec->addChunk(endOfList);
 
   Symbol *headSym = symtab->findUnderscore("__RUNTIME_PSEUDO_RELOC_LIST__");
   Symbol *endSym = symtab->findUnderscore("__RUNTIME_PSEUDO_RELOC_LIST_END__");
-  replaceSymbol<DefinedSynthetic>(headSym, headSym->getName(), table);
+  replaceSymbol<DefinedSynthetic>(headSym, headSym->getName(),
+                                  config->pseudoRelocTable);
   replaceSymbol<DefinedSynthetic>(endSym, endSym->getName(), endOfList);
 }
 

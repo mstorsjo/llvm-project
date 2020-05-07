@@ -118,6 +118,8 @@ private:
 
   void maybeExportMinGWSymbols(const llvm::opt::InputArgList &args);
 
+  void createRuntimePseudoRelocs();
+
   // We don't want to add the same file more than once.
   // Files are uniquified by their filesystem and file number.
   std::set<llvm::sys::fs::UniqueID> visitedFiles;

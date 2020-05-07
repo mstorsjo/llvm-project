@@ -29,6 +29,7 @@ class DefinedRelative;
 class StringChunk;
 class Symbol;
 class InputFile;
+class PseudoRelocTableChunk;
 
 // Short aliases.
 static const auto AMD64 = llvm::COFF::IMAGE_FILE_MACHINE_AMD64;
@@ -237,6 +238,7 @@ struct Configuration {
   bool thinLTOIndexOnly;
   bool autoImport = false;
   bool pseudoRelocs = false;
+  PseudoRelocTableChunk *pseudoRelocTable = nullptr;
 };
 
 extern Configuration *config;

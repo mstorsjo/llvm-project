@@ -1099,6 +1099,49 @@ void LinkerDriver::maybeExportMinGWSymbols(const opt::InputArgList &args) {
   });
 }
 
+// MinGW specific. Gather all relocations that are imported from a DLL even
+// though the code didn't expect it to, produce the table that the runtime
+// uses for fixing them up, and load the function that is required for fixing
+// them up at runtime.
+void LinkerDriver::createRuntimePseudoRelocs() {
+  std::vector<RuntimePseudoReloc> rels;
+
+  for (Chunk *c : symtab->getChunks()) {
+    auto *sc = dyn_cast<SectionChunk>(c);
+    if (!sc || !sc->live)
+      continue;
+    sc->getRuntimePseudoRelocs(rels);
+  }
+
+  if (!config->pseudoRelocs) {
+    // Not writing any pseudo relocs; if some were needed, error out and
+    // indicate what required them.
+    for (const RuntimePseudoReloc &rpr : rels)
+      error("automatic dllimport of " + rpr.sym->getName() + " in " +
+            toString(rpr.target->file) + " requires pseudo relocations");
+    return;
+  }
+
+  if (!rels.empty()) {
+    log("Writing " + Twine(rels.size()) + " runtime pseudo relocations");
+    // Force the _pei386_runtime_relocator function to be loaded, for fixing
+    // up the relocations at runtime. Despite the function's name, it works on
+    // all architectures.
+    // Either the function was already unconditionally called by startup code
+    // and already linked in, or the object file comes with a constructor
+    // for running it at the appropriate time.
+    // As this is done after creating the pseudo relocation table, any object
+    // files loaded at this stage can't contain auto imports. We're past doing
+    // LTO here, so this object file also can't be built in that form.
+    addUndefined(mangle("_pei386_runtime_relocator"));
+    while (run())
+      ;
+    symtab->resolveRemainingUndefines();
+  }
+
+  config->pseudoRelocTable = make<PseudoRelocTableChunk>(rels);
+}
+
 // lld has a feature to create a tar file containing all input files as well as
 // all command line options, so that other people can run lld again with exactly
 // the same inputs. This feature is accessible via /linkrepro and /reproduce.
@@ -1967,6 +2010,13 @@ void LinkerDriver::link(ArrayRef<const char *> argsArr) {
 
   // Resolve remaining undefined symbols and warn about imported locals.
   symtab->resolveRemainingUndefines();
+  if (errorCount())
+    return;
+
+  // Check if auto imports need pseudo relocations, loading potentially
+  // more object files for the pseudo relocation handler.
+  if (config->autoImport)
+    createRuntimePseudoRelocs();
   if (errorCount())
     return;
 
