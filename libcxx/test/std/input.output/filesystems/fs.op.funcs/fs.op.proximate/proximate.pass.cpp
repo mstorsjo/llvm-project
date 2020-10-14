@@ -26,9 +26,15 @@
 
 static int count_path_elems(const fs::path& p) {
   int count = 0;
+  bool first = true;
   for (auto& elem : p) {
-    if (elem != "/" && elem != "")
+    bool drive_name = false;
+#ifdef _WIN32
+    drive_name = first && elem.native().size() == 2 && elem.native()[1] == ':';
+#endif
+    if (elem != "/" && elem != "" && !drive_name)
       ++count;
+    first = false;
   }
   return count;
 }
@@ -57,7 +63,7 @@ TEST_CASE(basic_test) {
   path dot_dot_to_root;
   for (int i=0; i < cwd_depth; ++i)
     dot_dot_to_root /= "..";
-  path relative_cwd = cwd.native().substr(1);
+  path relative_cwd = cwd.native().substr(cwd.root_path().native().size());
   // clang-format off
   struct {
     fs::path input;
@@ -75,11 +81,20 @@ TEST_CASE(basic_test) {
       {"a", "/", relative_cwd / "a"},
       {"a/b", "/", relative_cwd / "a/b"},
       {"a", "/net", ".." / relative_cwd / "a"},
+#ifdef _WIN32
+      {"//foo/", "//foo", "//foo/"},
+      {"//foo", "//foo/", "//foo"},
+#else
       {"//foo/", "//foo", "."},
       {"//foo", "//foo/", "."},
+#endif
       {"//foo", "//foo", "."},
       {"//foo/", "//foo/", "."},
+#ifdef _WIN32
+      {"//base", "a", "//base"},
+#else
       {"//base", "a", dot_dot_to_root / "../base"},
+#endif
       {"a", "a", "."},
       {"a/b", "a/b", "."},
       {"a/b/c/", "a/b/c/", "."},
@@ -98,6 +113,8 @@ TEST_CASE(basic_test) {
     std::error_code ec = GetTestEC();
     fs::path p(TC.input);
     const fs::path output = fs::proximate(p, TC.base, ec);
+    fs::path expect = TC.expect;
+    expect.make_preferred();
     if (ec) {
       TEST_CHECK(!ec);
       std::fprintf(stderr, "TEST CASE #%d FAILED:\n"
@@ -105,9 +122,9 @@ TEST_CASE(basic_test) {
                   "  Base: '%s'\n"
                   "  Expected: '%s'\n",
         ID, TC.input.string().c_str(), TC.base.string().c_str(),
-        TC.expect.string().c_str());
-    } else if (!PathEq(output, TC.expect)) {
-      TEST_CHECK(PathEq(output, TC.expect));
+        expect.string().c_str());
+    } else if (!PathEq(output, expect)) {
+      TEST_CHECK(PathEq(output, expect));
 
       const path canon_input = fs::weakly_canonical(TC.input);
       const path canon_base = fs::weakly_canonical(TC.base);
@@ -121,7 +138,7 @@ TEST_CASE(basic_test) {
                   "  Canon Input: '%s'\n"
                   "  Canon Base: '%s'\n",
         ID, TC.input.string().c_str(), TC.base.string().c_str(),
-        TC.expect.string().c_str(), output.string().c_str(),
+        expect.string().c_str(), output.string().c_str(),
         lexically_p.string().c_str(), canon_input.string().c_str(),
         canon_base.string().c_str());
     }
