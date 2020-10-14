@@ -23,12 +23,15 @@ def main():
     parser.add_argument("command", nargs=argparse.ONE_OR_MORE)
     args = parser.parse_args()
     commandLine = args.command
-    commandLine.insert(0, '/usr/bin/wine')
+#    commandLine.insert(0, '/usr/bin/wine')
+    commandLine.insert(0, '/home/martin/wine-test-64/bin/wine64')
 
     # Extract environment variables into a dictionary
     env = {k : v  for (k, v) in map(lambda s: s.split('=', 1), args.env)}
 
     env['WINEPATH'] = env['PATH'].replace('/', '\\')
+    env['LD_LIBRARY_PATH'] = '/home/martin/wine-test-64/lib64'
+    env['WINEPREFIX'] = '/home/martin/.wine-test-64'
 
     # Run the command line with the given environment in the execution directory.
     return subprocess.call(subprocess.list2cmdline(commandLine), cwd=args.execdir, env=env, shell=True)
