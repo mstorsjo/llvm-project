@@ -35,10 +35,22 @@ const ReplaceFilenameTestcase TestCases[] =
     , {"/foo", "/", ""}
     , {"foo", "bar", "bar"}
     , {"/", "/bar", "bar"}
+#ifdef _WIN32
+    , {"\\", "\\bar", "bar"}
+#else
     , {"\\", "bar", "bar"}
+#endif
     , {"///", "///bar", "bar"}
+#ifdef _WIN32
+    , {"\\\\", "\\\\bar", "bar"}
+#else
     , {"\\\\", "bar", "bar"}
+#endif
+#ifdef _WIN32
+    , {"\\/\\", "\\/\\bar", "bar"}
+#else
     , {"\\/\\", "\\/bar", "bar"}
+#endif
     , {".", "bar", "bar"}
     , {"..", "bar", "bar"}
     , {"/foo\\baz/bong/", "/foo\\baz/bong/bar", "bar"}
