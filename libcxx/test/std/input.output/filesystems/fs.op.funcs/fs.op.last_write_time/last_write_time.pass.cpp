@@ -386,11 +386,11 @@ TEST_CASE(get_last_write_time_dynamic_env_test)
     const TimeSpec dir_write_time = dir_times.write;
 
     file_time_type ftime = last_write_time(file);
-    TEST_CHECK(Clock::to_time_t(ftime) == file_write_time.tv_sec);
+    LIBCPP_ONLY(TEST_CHECK(Clock::to_time_t(ftime) == file_write_time.tv_sec));
     TEST_CHECK(CompareTime(ftime, file_write_time));
 
     file_time_type dtime = last_write_time(dir);
-    TEST_CHECK(Clock::to_time_t(dtime) == dir_write_time.tv_sec);
+    LIBCPP_ONLY(TEST_CHECK(Clock::to_time_t(dtime) == dir_write_time.tv_sec));
     TEST_CHECK(CompareTime(dtime, dir_write_time));
 
     SleepFor(Sec(2));
