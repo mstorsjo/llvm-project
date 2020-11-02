@@ -11,6 +11,9 @@ endif()
 cmake_minimum_required(VERSION 3.13.4)
 
 set(CMAKE_BUILD_WITH_INSTALL_NAME_DIR ON)
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
 
 # Add path for custom modules
 set(CMAKE_MODULE_PATH
