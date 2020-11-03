@@ -150,6 +150,23 @@ void decompPathTest()
     fs::path p(TC.raw);
     assert(p == TC.raw);
 
+fprintf(stderr, "input: %s\n", TC.raw.c_str());
+fprintf(stderr, "expect: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"\n", TC.root_path.c_str(), TC.root_name.c_str(), TC.root_directory.c_str(), TC.relative_path.c_str(), TC.parent_path.c_str(), TC.filename.c_str());
+fprintf(stderr, "elements:");
+for (auto &s : TC.elements)
+  fprintf(stderr, " %s", s.c_str());
+fprintf(stderr, "\n");
+fprintf(stderr, "result: \"%s\" \"%s\" \"%s\" \"%s\" \"%s\" \"%s\"\n", p.root_path().string().c_str(), p.root_name().string().c_str(), p.root_directory().string().c_str(), p.relative_path().string().c_str(), p.parent_path().string().c_str(), p.filename().string().c_str());
+fprintf(stderr, "forward:");
+for (auto it = p.begin(); it != p.end(); it++)
+  fprintf(stderr, " %s", (*it).string().c_str());
+fprintf(stderr, "\n");
+fprintf(stderr, "backward:");
+for (auto it = p.end(); it != p.begin(); )
+  fprintf(stderr, " %s", (*--it).string().c_str());
+fprintf(stderr, "\n");
+fflush(stderr);
+
     assert(p.root_path() == TC.root_path);
     assert(p.has_root_path() != TC.root_path.empty());
 
