@@ -361,6 +361,7 @@ int main(int, char**)
       path LHS(LHS_In);
       path RHS(RHS_In);
       path& Res = (LHS /= RHS);
+fprintf(stderr, "%s / %s -> %s vs %s\n", LHS_In, RHS_In, Res.string().c_str(), (const char*)TC.expected_result());
       assert(PathEq(Res, (const char*)TC.expected_result()));
       assert(&Res == &LHS);
     }
