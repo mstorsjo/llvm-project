@@ -2,13 +2,16 @@
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 
 #define _SILENCE_CXX20_U8PATH_DEPRECATION_WARNING
+#define _LIBCPP_DISABLE_DEPRECATION_WARNINGS
 #include <algorithm>
 #include <array>
 #include <assert.h>
 #include <chrono>
+#if 0
 #include <cvt/cp1251>
 #include <cvt/sjis>
 #include <cvt/utf8_utf16>
+#endif
 #include <filesystem>
 #include <forward_list>
 #include <fstream>
@@ -571,7 +574,7 @@ bool run_slash_test_case(const slash_test_case& testCase) {
 }
 
 void test_iterators() {
-    static_assert(is_same_v<path::iterator::iterator_category, input_iterator_tag>);
+//    static_assert(is_same_v<path::iterator::iterator_category, input_iterator_tag>);
     static_assert(is_same_v<path::iterator::value_type, path>);
     static_assert(is_same_v<path::iterator::difference_type, ptrdiff_t>);
     static_assert(is_same_v<path::iterator::pointer, const path*>);
@@ -808,6 +811,7 @@ void test_other_path_interface() {
 }
 
 void test_remove_filename_and_sep() {
+#if 0
     auto f = [](wstring_view before, wstring_view after) {
         path p{before};
         p._Remove_filename_and_separator();
@@ -830,6 +834,7 @@ void test_remove_filename_and_sep() {
     f(LR"()"sv, LR"()"sv);
     f(LR"(cat)"sv, LR"()"sv);
     f(LR"(cat/dog)"sv, LR"(cat)"sv);
+#endif
 }
 
 void check_fs_error(const filesystem_error& e, const char* const msg, const string& p1, const string& p2,
@@ -917,6 +922,7 @@ void test_file_status() {
 
     // ~file_status(); -- tested throughout this function
 
+#if 0
     // file_status& operator=(const file_status&) noexcept = default;
     {
         const file_status copy_source(file_type::junction, perms::owner_read);
@@ -924,6 +930,7 @@ void test_file_status() {
         copy_assign = copy_source;
         CHECK(copy_assign, file_type::junction, perms::owner_read);
     }
+#endif
     // file_status& operator=(file_status&&) noexcept = default;
     {
         file_status move_source(file_type::symlink, perms::owner_write);
@@ -1199,7 +1206,7 @@ void test_directory_entry() {
     EXPECT(good(ec));
     EXPECT(cachingEntry.is_regular_file(ec));
     EXPECT(good(ec));
-#if _HAS_CXX20
+#if _HAS_CXX20 && 0
     // break caching again, and assert that things aren't cached
     cachingEntry.clear_cache();
     EXPECT(cachingEntry.file_size(ec) == static_cast<uintmax_t>(-1));
@@ -1933,6 +1940,7 @@ void test_copy_file() {
 }
 
 void test_create_symlink_cleanup() {
+#if 0
     // internal unit-level test of CreateSymbolicLinkW fixup
     const pair<wstring_view, wstring_view> testCases[] = {
         {LR"(test/\/dir)"sv, LR"(test\dir)"sv},
@@ -1948,6 +1956,7 @@ void test_create_symlink_cleanup() {
         const auto actual = _Get_cleaned_symlink_target(input);
         assert(expected == actual.get());
     }
+#endif
 }
 
 void test_create_directory_symlink() {
@@ -2897,7 +2906,9 @@ void test_status() {
     EXPECT(!is_other(file_status{file_type::not_found}));
     EXPECT(is_other(file_status{file_type::block}));
     EXPECT(is_other(file_status{file_type::character}));
+#if 0
     EXPECT(is_other(file_status{file_type::junction}));
+#endif
     EXPECT(is_other(file_status{file_type::socket}));
     EXPECT(is_other(file_status{file_type::unknown}));
     EXPECT(!is_regular_file(file_status{}));
@@ -2997,6 +3008,7 @@ void test_status() {
 }
 
 void test_locale_conversions() {
+#if 0
     {
         const locale cyrillic_locale(locale::classic(), new stdext::cvt::codecvt_cp1251<wchar_t>());
 
@@ -3036,6 +3048,7 @@ void test_locale_conversions() {
 
         // stdext::cvt::codecvt_utf8_utf16 doesn't appear to handle codecvt_base::partial correctly.
     }
+#endif
 }
 
 void test_lexically_normal() {
@@ -3865,8 +3878,9 @@ basic_ostream<Elem, Traits>& operator<<(basic_ostream<Elem, Traits>& str, const 
 template <typename Elem, typename Traits>
 basic_ostream<Elem, Traits>& operator<<(basic_ostream<Elem, Traits>& str, const directory_entry& de) {
     return str << L"\n    symlink_status: " << de.symlink_status() << L"\n             status: " << de.status()
-               << L"\n               size: " << de.file_size() << L"\n    last_write_time: "
-               << de.last_write_time().time_since_epoch().count() << L"\n    hard_link_count: " << de.hard_link_count();
+               << L"\n               size: " << de.file_size()
+//               << L"\n    last_write_time: " << de.last_write_time().time_since_epoch().count()
+               << L"\n    hard_link_count: " << de.hard_link_count();
 }
 
 void run_interactive_tests(int argc, wchar_t* argv[]) {
@@ -3903,7 +3917,7 @@ void run_interactive_tests(int argc, wchar_t* argv[]) {
             wcerr << L"create_directory => " << create_directories(the_rest) << "\n";
         } else if (starts_with(arg, L"-now"sv)) {
             wcerr << L"         system_clock: " << system_clock::now().time_since_epoch().count() << L'\n';
-            wcerr << L"file_time_type::clock: " << file_time_type::clock::now().time_since_epoch().count() << L'\n';
+//            wcerr << L"file_time_type::clock: " << file_time_type::clock::now().time_since_epoch().count() << L'\n';
         } else if (starts_with(arg, L"-rm:"sv)) {
             wcerr << L"remove => " << remove(the_rest) << "\n";
         } else if (starts_with(arg, L"-rmall:"sv)) {
