@@ -3578,12 +3578,12 @@ void test_temp_directory_path() {
     } catch (const filesystem_error& err) {
         EXPECT(err.code() == make_error_code(errc::not_a_directory));
         const auto& p1Native = err.path1().native();
-        EXPECT(p1Native.find(LR"(\nonexistent.dir\)") == p1Native.size() - 17);
+        EXPECT(p1Native.find(LR"(nonexistent.dir)") == p1Native.size() - 15);
         EXPECT(err.path2().empty());
     }
 
     const auto nonexistentTemp = temp_directory_path(ec).native();
-    EXPECT(nonexistentTemp.find(LR"(\nonexistent.dir\)") == nonexistentTemp.size() - 17);
+    EXPECT(nonexistentTemp == path());
     EXPECT(ec == make_error_code(errc::not_a_directory));
 
     // TODO: automated test is_directory(p) is false, symlinks, after other filesystem components are implemented
