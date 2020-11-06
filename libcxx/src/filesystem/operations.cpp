@@ -1448,6 +1448,7 @@ path __temp_directory_path(error_code* ec) {
 #endif
   error_code m_ec;
   file_status st = detail::posix_stat(p, &m_ec);
+  err.p1_ = &p;
   if (!status_known(st))
     return err.report(m_ec, "cannot access path \"" PS_FMT "\"", p.c_str());
 

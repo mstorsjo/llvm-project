@@ -86,6 +86,11 @@ TEST_CASE(basic_tests)
         TEST_CHECK(ec);
         TEST_CHECK(ret == "");
 
+        LIBCPP_ONLY(
+        ExceptionChecker Checker(dne, expect_errc, "temp_directory_path",
+                                 "path \"" + dne.string() + "\" is not a directory");
+        TEST_CHECK_THROW_RESULT(filesystem_error, Checker, temp_directory_path()));
+
         // Set the env variable to point to a file and check that it fails.
         PutEnv(TC.name, file);
         ec = GetTestEC();
