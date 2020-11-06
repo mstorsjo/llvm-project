@@ -3883,7 +3883,8 @@ basic_ostream<Elem, Traits>& operator<<(basic_ostream<Elem, Traits>& str, const 
                << L"\n    hard_link_count: " << de.hard_link_count();
 }
 
-void run_interactive_tests(int argc, wchar_t* argv[]) {
+void run_interactive_tests(int argc, char* argv[]) {
+    wstring rest_buf;
     wstring_view the_rest;
     const auto starts_with = [&](wstring_view arg, wstring_view prefix) {
         if (::starts_with(arg, prefix)) {
@@ -3898,7 +3899,8 @@ void run_interactive_tests(int argc, wchar_t* argv[]) {
                                    L" [-now] [-rm:<path>] [-rmall:<path>] [-sz:<path>]"
                                    L"\n"sv;
     for (int i = 1; i < argc; ++i) {
-        const wstring_view arg = argv[i];
+        string narrow(argv[i]);
+        const wstring arg(narrow.begin(), narrow.end());
         if (arg == L"-?"sv) {
             wcerr << usage;
         } else if (starts_with(arg, L"-recdir:"sv)) {
@@ -3938,7 +3940,7 @@ void test_devcom_953628() { // COMPILE-ONLY
     path{S{}};
 }
 
-int wmain(int argc, wchar_t* argv[]) {
+int main(int argc, char* argv[]) {
     error_code ec;
 
     // Store old path and change current path to a temporary path
