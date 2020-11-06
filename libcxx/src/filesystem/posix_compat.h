@@ -171,6 +171,7 @@ private:
 };
 
 int stat_handle(HANDLE h, StatT *buf) {
+// For plain path, GetFileAttributesEx gets dwFileAttributes, ftLastWriteTime, ftLastAccessTime, nFileSizeHigh, nFileSizeLow
   FILE_BASIC_INFO basic;
   if (!GetFileInformationByHandleEx(h, FileBasicInfo, &basic, sizeof(basic)))
     return set_errno();
@@ -184,6 +185,7 @@ int stat_handle(HANDLE h, StatT *buf) {
     buf->st_mode |= _S_IFDIR;
   } else {
     buf->st_mode |= _S_IFREG;
+    // TODO: executable? If path ends with .exe?
   }
   if (basic.FileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) {
     FILE_ATTRIBUTE_TAG_INFO tag;
@@ -199,6 +201,13 @@ int stat_handle(HANDLE h, StatT *buf) {
     return set_errno();
   buf->st_nlink = standard.NumberOfLinks;
   buf->st_size = standard.EndOfFile.QuadPart;
+/*
+  FILE_ID_INFO id;
+  if (!GetFileInformationByHandleEx(h, FileIdInfo, &id, sizeof(id)))
+    return set_errno();
+  buf->st_dev = id.VolumeSerialNumber;
+  memcpy(buf->st_ino.id, id.FileId.Identifier, 16);
+*/
   BY_HANDLE_FILE_INFORMATION info;
   if (!GetFileInformationByHandle(h, &info))
     return set_errno();
