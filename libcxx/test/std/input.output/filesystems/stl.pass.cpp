@@ -150,9 +150,18 @@ template <typename Lambda>
 bool throws_filesystem_error(Lambda lambda, string_view functionName, const path& p1 = {}, const path& p2 = {}) {
     try {
         lambda();
+        fprintf(stderr, "missing exception thrown!\n");
         return false;
     } catch (const filesystem_error& err) {
         // Good!
+        if (string_view(err.what()).find(functionName) == string_view::npos)
+            fprintf(stderr, "missing %s in %s\n", std::string(functionName).c_str(), err.what());
+        if (!bad(err.code()))
+            fprintf(stderr, "!bad error code\n");
+        if (err.path1().native() != p1.native())
+            fprintf(stderr, "missing p1\n");
+        if (err.path2().native() != p2.native())
+            fprintf(stderr, "missing p2\n");
         return string_view(err.what()).find(functionName) != string_view::npos && bad(err.code())
                && err.path1().native() == p1.native() && err.path2().native() == p2.native();
     }
