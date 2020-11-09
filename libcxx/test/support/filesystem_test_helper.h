@@ -71,7 +71,15 @@ namespace utils {
 #else
     using ::mkdir;
     using ::ftruncate;
-    inline int symlink(const char* oldname, const char* newname, bool is_dir) { (void)is_dir; return ::symlink(oldname, newname); }
+    inline int symlink(const char* oldname, const char* newname, bool is_dir) {
+      fs::path dest = fs::path(newname).remove_filename() / oldname;
+      if (exists(dest) && (is_dir != is_directory(dest))) {
+        fprintf(stderr, "%s -> %s is %sa dir (support)\n", newname, oldname, is_dir ? "not " : "");
+        fflush(stderr);
+        abort();
+      }
+      return ::symlink(oldname, newname);
+    }
     using ::link;
     using ::setenv;
     using ::unsetenv;

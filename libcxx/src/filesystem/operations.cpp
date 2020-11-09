@@ -987,12 +987,10 @@ void __copy_symlink(const path& existing_symlink, const path& new_symlink,
   if (ec && *ec) {
     return;
   }
-#if defined(_LIBCPP_WIN32API)
   error_code local_ec;
   if (is_directory(real_path, local_ec))
     __create_directory_symlink(real_path, new_symlink, ec);
   else
-#endif
     __create_symlink(real_path, new_symlink, ec);
 }
 

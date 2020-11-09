@@ -506,10 +506,28 @@ SSizeT readlink(const wchar_t *path, wchar_t *ret_buf, size_t bufsize) {
 
 #else
 int symlink_file(const char *oldname, const char *newname) {
-  return ::symlink(oldname, newname);
+  int ret = ::symlink(oldname, newname);
+  if (ret != 0)
+    return ret;
+  path dest = path(newname).remove_filename() / oldname;
+  if (is_directory(dest)) {
+    fprintf(stderr, "%s -> %s is a dir\n", newname, oldname);
+    fflush(stderr);
+    abort();
+  }
+  return 0;
 }
 int symlink_dir(const char *oldname, const char *newname) {
-  return ::symlink(oldname, newname);
+  int ret = ::symlink(oldname, newname);
+  if (ret != 0)
+    return ret;
+  path dest = path(newname).remove_filename() / oldname;
+  if (exists(dest) && !is_directory(dest)) {
+    fprintf(stderr, "%s -> %s is not a dir\n", newname, oldname);
+    fflush(stderr);
+    abort();
+  }
+  return 0;
 }
 using ::chdir;
 using ::close;
