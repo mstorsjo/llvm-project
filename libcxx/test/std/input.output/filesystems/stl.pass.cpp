@@ -2756,7 +2756,7 @@ void test_file_size() {
         const directory_entry default_de;
         EXPECT(bad_file_size == default_de.file_size(ec));
         EXPECT(ec == errc::no_such_file_or_directory);
-        EXPECT(throws_filesystem_error([&] { (void) default_de.file_size(); }, "directory_entry::file_size"));
+        EXPECT(throws_filesystem_error([&] { (void) default_de.file_size(); }, "file_size"));
     }
 
     // test happy file
@@ -2842,7 +2842,7 @@ void test_last_write_time() {
         EXPECT(bad_file_time == default_de.last_write_time(ec));
         EXPECT(ec == errc::no_such_file_or_directory);
         EXPECT(
-            throws_filesystem_error([&] { (void) default_de.last_write_time(); }, "directory_entry::last_write_time"));
+            throws_filesystem_error([&] { (void) default_de.last_write_time(); }, "last_write_time"));
     }
 
     // test happy file
