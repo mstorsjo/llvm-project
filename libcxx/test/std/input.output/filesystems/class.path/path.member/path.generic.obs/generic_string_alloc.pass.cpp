@@ -45,17 +45,17 @@ MultiStringType longString = MKSTR("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQR
 int main(int, char**)
 {
   using namespace fs;
-  using CharT = wchar_t;
+  using CharT = char32_t;
   using Traits = std::char_traits<CharT>;
   using Alloc = malloc_allocator<CharT>;
   using Str = std::basic_string<CharT, Traits, Alloc>;
-  const wchar_t* expect = longString;
+  const CharT* expect = longString;
   const path p((const char*)longString);
   {
     DisableAllocationGuard g;
     Alloc a;
     Alloc::disable_default_constructor = true;
-    Str s = p.generic_string<wchar_t, Traits, Alloc>(a);
+    Str s = p.generic_string<CharT, Traits, Alloc>(a);
     assert(s == expect);
     assert(Alloc::alloc_count > 0);
     assert(Alloc::outstanding_alloc() == 1);
