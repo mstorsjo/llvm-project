@@ -126,8 +126,14 @@ TEST_CASE(path_ctor_dne) {
   {
     std::error_code ec = GetTestEC();
     directory_entry ent(static_env.DNE, ec);
-    TEST_CHECK(ErrorIs(ec, std::errc::no_such_file_or_directory));
     TEST_CHECK(ent.path() == static_env.DNE);
+#ifdef TESTING_MSVC_STL
+    TEST_CHECK(!ec);
+    TEST_CHECK_THROW(filesystem_error, ent.refresh());
+#else
+    TEST_CHECK(ErrorIs(ec, std::errc::no_such_file_or_directory));
+    TEST_CHECK_NO_THROW(ent.refresh());
+#endif
   }
   // don't report dead symlinks as an error.
   {
@@ -143,6 +149,19 @@ TEST_CASE(path_ctor_dne) {
 
     directory_entry ent_two(static_env.BadSymlink);
     TEST_CHECK(ent_two.path() == static_env.BadSymlink);
+  }
+  {
+    scoped_test_env env;
+    std::error_code ec = GetTestEC();
+    path file = env.make_env_path("file");
+    directory_entry cachingEntry(file);
+    TEST_CHECK(cachingEntry.file_size(ec) == static_cast<uintmax_t>(-1));
+    TEST_CHECK(ec);
+    env.create_file(file, 42);
+#ifdef TESTING_MSVC_STL
+    TEST_CHECK(cachingEntry.file_size(ec) == 42);
+    TEST_CHECK(!ec);
+#endif
   }
 }
 
