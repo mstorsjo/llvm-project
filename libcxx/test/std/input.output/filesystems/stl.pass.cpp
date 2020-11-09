@@ -2780,7 +2780,7 @@ void test_last_write_time() {
     // set the last write time to a very early value; this will fail implementations that attempt to adjust
     // from the system_clock epoch to the NT epoch when writing to disk
     error_code ec;
-    constexpr file_time_type testTime{file_time_type::duration{1}};
+    constexpr file_time_type testTime{std::chrono::duration<file_time_type::rep, std::nano>{100}};
 
     const test_temp_directory tempDir("last_write_time"sv);
 
