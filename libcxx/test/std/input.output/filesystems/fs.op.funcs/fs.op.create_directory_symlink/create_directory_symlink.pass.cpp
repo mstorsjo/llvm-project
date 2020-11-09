@@ -37,11 +37,11 @@ TEST_CASE(test_error_reporting)
 {
     scoped_test_env env;
     const path file = env.create_file("file1", 42);
-    const path file2 = env.create_file("file2", 55);
+    const path dir = env.create_dir("dir");
     const path sym = env.create_symlink(file, "sym");
     { // destination exists
         std::error_code ec;
-        fs::create_directory_symlink(sym, file2, ec);
+        fs::create_directory_symlink(dir, sym, ec);
         TEST_REQUIRE(ec);
     }
 }
