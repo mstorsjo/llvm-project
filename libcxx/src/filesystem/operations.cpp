@@ -1620,7 +1620,6 @@ string_view_t path::__extension() const {
 
 enum PathPartKind : unsigned char {
   PK_None,
-  PK_RootName,
   PK_RootSep,
   PK_Filename,
   PK_Dot,
@@ -1628,7 +1627,7 @@ enum PathPartKind : unsigned char {
   PK_TrailingSep
 };
 
-static PathPartKind ClassifyPathPart(string_view_t Part, bool First) {
+static PathPartKind ClassifyPathPart(string_view_t Part) {
   if (Part.empty())
     return PK_TrailingSep;
   if (Part == PS("."))
@@ -1640,12 +1639,6 @@ static PathPartKind ClassifyPathPart(string_view_t Part, bool First) {
 #if defined(_LIBCPP_WIN32API)
   if (Part == PS("\\"))
     return PK_RootSep;
-  if (First) {
-    if (Part.size() == 2 && isDriveLetter(Part[0]) && Part[1] == ':')
-      return PK_RootName;
-    if (Part.size() >= 3 && isSeparator(Part[0]) && isSeparator(Part[1]))
-      return PK_RootName;
-  }
 #endif
   return PK_Filename;
 }
@@ -1673,15 +1666,12 @@ path path::lexically_normal() const {
   };
 
   bool MaybeNeedTrailingSep = false;
-  bool First = true;
   // Build a stack containing the remaining elements of the path, popping off
   // elements which occur before a '..' entry.
   for (auto PP = PathParser::CreateBegin(__pn_); PP; ++PP) {
     auto Part = *PP;
-    PathPartKind Kind = ClassifyPathPart(Part, First);
-    First = false;
+    PathPartKind Kind = ClassifyPathPart(Part);
     switch (Kind) {
-    case PK_RootName:
     case PK_Filename:
     case PK_RootSep: {
       // Add all non-dot and non-dot-dot elements to the stack of elements.
@@ -1720,18 +1710,8 @@ path path::lexically_normal() const {
 
   path Result;
   Result.__pn_.reserve(Parts.size() + NewPathSize + NeedTrailingSep);
-  for (auto& PK : Parts) {
-#if defined(_LIBCPP_WIN32API)
-    if (PK.second == PK_RootSep || PK.second == PK_RootName) {
-      path::string_type tmp(PK.first.begin(), PK.first.end());
-      std::replace(tmp.begin(), tmp.end(), static_cast<path::value_type>('/'),
-                   path::preferred_separator);
-      Result /= tmp;
-      continue;
-    }
-#endif
+  for (auto& PK : Parts)
     Result /= PK.first;
-  }
 
   if (NeedTrailingSep)
     Result /= PS("");
