@@ -108,6 +108,14 @@ if (LIBCXX_ENABLE_FILESYSTEM)
       filesystem/int128_builtins.cpp
       )
   endif()
+  if (MSVC)
+    # The __int128_t type generates calls to libgcc/clang_rt.builtins style
+    # helper functions that aren't provided by the MSVC runtime; bundle the
+    # necessary bits here.
+    list(APPEND LIBCXX_SOURCES
+      filesystem/int128_builtins_msvc.cpp
+      )
+  endif()
 endif()
 
 # Add all the headers to the project for IDEs.
