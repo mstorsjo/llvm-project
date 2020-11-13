@@ -273,23 +273,17 @@ int link(const wchar_t *oldname, const wchar_t *newname) {
 }
 
 int remove(const wchar_t *path) {
-  detail::WinHandle h(path, DELETE, FILE_FLAG_OPEN_REPARSE_POINT);
-  if (!h)
-    return set_errno();
-  struct { // FILE_DISPOSITION_INFO_EX
-    DWORD Flags;
-  } infoex;
-  infoex.Flags = 0x3; // FILE_DISPOSITION_FLAG_DELETE | FILE_DISPOSITION_FLAG_POSIX_SEMANTICS
-  if (SetFileInformationByHandle(h, static_cast<FILE_INFO_BY_HANDLE_CLASS>(21) /* FileDispositionInfoEx */, &infoex, sizeof(infoex)))
+  if (DeleteFileW(path))
     return 0;
   int e = GetLastError();
-  if (e != ERROR_INVALID_FUNCTION && e != ERROR_INVALID_PARAMETER && e != ERROR_NOT_SUPPORTED)
-    return set_errno();
-  FILE_DISPOSITION_INFO info;
-  info.DeleteFile = TRUE;
-  if (!SetFileInformationByHandle(h, FileDispositionInfo, &info, sizeof(info)))
-    return set_errno();
-  return 0;
+  if (e == ERROR_ACCESS_DENIED) {
+    if (is_directory(path)) {
+      if (!RemoveDirectoryW(path))
+        return set_errno();
+      return 0;
+    }
+  }
+  return set_errno(e);
 }
 
 int truncate_handle(HANDLE h, off_t length) {
