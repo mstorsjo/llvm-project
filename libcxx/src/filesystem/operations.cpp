@@ -50,6 +50,13 @@
 # pragma comment(lib, "rt")
 #endif
 
+#if defined(_LIBCPP_WIN32API)
+#if defined(__MINGW32__)
+// mingw-w64 headers lack this function declaration for now.
+extern "C" __declspec(dllimport) unsigned int ___lc_codepage_func(void);
+#endif
+#endif
+
 _LIBCPP_BEGIN_NAMESPACE_FILESYSTEM
 
 namespace {
@@ -1906,13 +1913,24 @@ path::iterator& path::iterator::__decrement() {
 }
 
 #if defined(_LIBCPP_WIN32API)
+static UINT get_narrow_codepage() {
+  // If the locale is set to utf8, then CRT file APIs like fopen() etc
+  // expect utf8 path names, while kernel32 -A suffixed file functions
+  // still want either CP_ACP or CP_OEMCP.
+  if (___lc_codepage_func() == CP_UTF8)
+    return CP_UTF8;
+  if (AreFileApisANSI())
+    return CP_ACP;
+  return CP_OEMCP;
+}
+
 ////////////////////////////////////////////////////////////////////////////
 // Windows path conversions
 size_t __wide_to_char(const wstring &str, char *out, size_t outlen) {
   if (str.empty())
     return 0;
   ErrorHandler<size_t> err("__wide_to_char", nullptr);
-  UINT codepage = AreFileApisANSI() ? CP_ACP : CP_OEMCP;
+  UINT codepage = get_narrow_codepage();
   BOOL used_default = FALSE;
   int ret = WideCharToMultiByte(codepage, 0, str.data(), str.size(), out,
                                 outlen, nullptr, &used_default);
@@ -1925,7 +1943,7 @@ size_t __char_to_wide(const string &str, wchar_t *out, size_t outlen) {
   if (str.empty())
     return 0;
   ErrorHandler<size_t> err("__char_to_wide", nullptr);
-  UINT codepage = AreFileApisANSI() ? CP_ACP : CP_OEMCP;
+  UINT codepage = get_narrow_codepage();
   int ret = MultiByteToWideChar(codepage, MB_ERR_INVALID_CHARS, str.data(),
                                 str.size(), out, outlen);
   if (ret <= 0)
