@@ -3736,7 +3736,7 @@ void test_create_dirs_and_remove_all() {
         create_file_containing(r, L"example");
         EXPECT(throws_filesystem_error([&sub] { create_directories(sub); }, "create_directories", sub));
         EXPECT(!create_directories(p, ec));
-        EXPECT(ec == make_error_condition(errc::file_exists));
+        EXPECT(ec == make_error_condition(errc::not_a_directory));
 //        EXPECT(ec == error_code(183 /*ERROR_ALREADY_EXISTS*/, system_category()));
         remove(r);
         // last directory:
@@ -3744,7 +3744,7 @@ void test_create_dirs_and_remove_all() {
         create_file_containing(sub, L"example");
         EXPECT(throws_filesystem_error([&sub] { create_directories(sub); }, "create_directories", sub));
         EXPECT(!create_directories(p, ec));
-        EXPECT(ec == make_error_condition(errc::file_exists));
+        EXPECT(ec == make_error_condition(errc::not_a_directory));
 //        EXPECT(ec == error_code(183 /*ERROR_ALREADY_EXISTS*/, system_category()));
         remove_all(r);
     }
