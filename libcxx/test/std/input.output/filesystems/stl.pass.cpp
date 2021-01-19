@@ -3581,9 +3581,9 @@ void test_temp_directory_path() {
     // Test:
     // Effects: If exists(p) is false or is_directory(p) is false, an error is reported
     wchar_t* oldTemp;
-    size_t unused;
-    assert(_wdupenv_s(&oldTemp, &unused, L"TMP") == 0);
+    oldTemp = _wgetenv(L"TMP");
     assert(oldTemp);
+    oldTemp = _wcsdup(oldTemp);
 
     // exists(p) is false
     assert(_wputenv_s(L"TMP", L"nonexistent.dir") == 0);
