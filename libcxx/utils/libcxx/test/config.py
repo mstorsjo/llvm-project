@@ -476,6 +476,7 @@ class Configuration(object):
 #                                    ['vcruntime', 'ucrt', 'msvcrt']]
             self.cxx.link_flags += ['-l%s%s' % (lib, debug_suffix) for lib in
                                     ['libcpmt', 'libcmt']]
+            self.cxx.link_flags += ['-loldnames']
         elif cxx_abi == 'none' or cxx_abi == 'default':
             if self.target_info.is_windows():
                 debug_suffix = 'd' if self.debug_build else ''
