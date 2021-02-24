@@ -164,6 +164,22 @@ directory as the tested libc++ DLL.
 (Building a libc++ that depends on libstdc++ isn't necessarily a config one
 would want to deploy, but it simplifies the config for testing purposes.)
 
+
+mingw
+
+cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_PATH=../../../../../llvm -DLLVM_ENABLE_PROJECTS="libcxxabi;libcxx" -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON -DLIBCXX_HAS_WIN32_THREAD_API=ON -DLIBCXX_CXX_ABI=libcxxabi -DCMAKE_CXX_FLAGS="-D_LIBCPP_HAS_THREAD_API_WIN32=" -DCMAKE_SHARED_LINKER_FLAGS="-fuse-ld=lld" -DLIBCXX_TARGET_INFO="libcxx.test.target_info.MingwLocalTI" -DLIBCXX_TEST_LINKER_FLAGS="-fuse-ld=lld" -DLIBCXXABI_ENABLE_SHARED=OFF -DLIBCXX_ENABLE_SHARED=ON
+
+cp /mingw64/bin/libgcc_s_seh-1.dll /mingw64/bin/libwinpthread-1.dll lib
+
+llvm-mingw
+
+
+cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_PATH=../../../../../llvm -DLLVM_ENABLE_PROJECTS="libunwind;libcxxabi;libcxx" -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON -DLIBCXX_HAS_WIN32_THREAD_API=ON -DLIBCXX_CXX_ABI=libcxxabi -DCMAKE_CXX_FLAGS="-D_LIBCPP_HAS_THREAD_API_WIN32=" -DLIBCXX_TARGET_INFO="libcxx.test.target_info.MingwLocalTI" -DLIBCXXABI_ENABLE_SHARED=OFF -DLIBCXX_USE_COMPILER_RT=ON -DLIBCXXABI_USE_COMPILER_RT=ON -DLIBCXX_ENABLE_SHARED=ON -DLIBCXXABI_USE_LLVM_UNWINDER=ON -DLIBUNWIND_USE_COMPILER_RT=ON -DLIBCXX_TEST_LINKER_FLAGS="-lunwind"
+
+
+(In this configurations, tests don't currently work quite as well
+out of the box.)
+
 .. _`libc++abi`: http://libcxxabi.llvm.org/
 
 
