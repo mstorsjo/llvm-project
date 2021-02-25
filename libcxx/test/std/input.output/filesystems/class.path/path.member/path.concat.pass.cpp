@@ -36,6 +36,12 @@
 #include <string_view>
 #include <cassert>
 
+#ifdef _WIN32
+// On Windows, charset conversions cause allocations in the path class in
+// cases where no allocations are done on other platforms.
+#define DISABLE_NEW_COUNT
+#endif
+
 #include "test_macros.h"
 #include "test_iterators.h"
 #include "count_new.h"
