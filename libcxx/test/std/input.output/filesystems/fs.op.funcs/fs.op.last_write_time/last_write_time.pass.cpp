@@ -532,7 +532,11 @@ TEST_CASE(test_write_min_time)
     last_write_time(p, new_time, ec);
     file_time_type tt = last_write_time(p);
 
-    if (TimeIsRepresentableByFilesystem(new_time)) {
+    if (TimeIsRepresentableByFilesystem(new_time)
+#ifdef _MSC_VER
+        || true
+#endif
+    ) {
         TEST_CHECK(!ec);
         TEST_CHECK(CompareTime(tt, new_time));
 
