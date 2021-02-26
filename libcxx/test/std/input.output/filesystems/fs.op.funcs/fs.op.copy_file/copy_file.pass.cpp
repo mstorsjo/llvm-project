@@ -108,7 +108,8 @@ TEST_CASE(test_attributes_get_copied) {
   TEST_REQUIRE(fs::copy_file(file, dest, ec) == true);
   TEST_CHECK(!ec);
   auto new_st = status(dest);
-  TEST_CHECK(new_st.permissions() == new_perms);
+  TEST_CHECK((new_st.permissions() &
+              (perms::owner_read | perms::owner_write)) == new_perms);
 }
 
 TEST_CASE(copy_dir_test) {
