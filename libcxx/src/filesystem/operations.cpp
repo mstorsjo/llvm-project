@@ -1053,18 +1053,12 @@ bool __create_directory(path const& p, path const& attributes, error_code* ec) {
 
   StatT attr_stat;
   error_code mec;
-  file_status st;
-#if !defined(_LIBCPP_WIN32API)
-  st = detail::posix_stat(attributes, attr_stat, &mec);
+  file_status st = detail::posix_stat(attributes, attr_stat, &mec);
   if (!status_known(st))
     return err.report(mec);
   if (!is_directory(st))
     return err.report(errc::not_a_directory,
                       "the specified attribute path is invalid");
-#else
-  (void)attributes;
-  attr_stat.st_mode = static_cast<int>(perms::all);
-#endif
 
   if (detail::mkdir(p.c_str(), attr_stat.st_mode) == 0)
     return true;
