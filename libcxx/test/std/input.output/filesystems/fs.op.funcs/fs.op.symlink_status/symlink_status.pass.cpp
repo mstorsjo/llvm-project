@@ -123,7 +123,9 @@ TEST_CASE(symlink_status_file_types_test)
         {static_env.Dir, file_type::directory},
         {static_env.SymlinkToDir, file_type::symlink},
         // Block files tested elsewhere
+#ifndef _WIN32
         {static_env.CharFile, file_type::character},
+#endif
 #if !defined(__APPLE__) && !defined(__FreeBSD__) && !defined(_WIN32) // No support for domain sockets
         {env.create_socket("socket"), file_type::socket},
 #endif
