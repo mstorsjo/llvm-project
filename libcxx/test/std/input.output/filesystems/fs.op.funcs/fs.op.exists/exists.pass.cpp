@@ -89,6 +89,9 @@ TEST_CASE(test_exists_fails)
 }
 #endif
 
+#ifndef _WIN32
+// Checking for the existance of an invalidly long path name doesn't
+// trigger errors on windows.
 TEST_CASE(test_name_too_long) {
     std::string long_name(2500, 'a');
     const path file(long_name);
@@ -97,5 +100,6 @@ TEST_CASE(test_name_too_long) {
     TEST_CHECK(exists(file, ec) == false);
     TEST_CHECK(ec);
 }
+#endif
 
 TEST_SUITE_END()
