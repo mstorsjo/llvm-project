@@ -126,18 +126,38 @@ TEST_CASE(basic_permissions_test)
           permissions(TC.p, TC.set_perms, TC.opts, ec);
           TEST_CHECK(!ec);
           auto pp = status(TC.p).permissions();
-          TEST_CHECK(pp == TC.expected);
+          auto expected = TC.expected;
+#ifdef _WIN32
+          expected |= perms::owner_read | perms::group_read | perms::others_read;
+          expected |= perms::owner_exec | perms::group_exec | perms::others_exec;
+          auto write = perms::owner_write | perms::group_write | perms::others_write;
+          if ((expected & write) != perms::none)
+            expected |= write;
+#endif
+          TEST_CHECK(pp == expected);
         }
         if (TC.opts == perm_options::replace) {
           std::error_code ec = GetTestEC();
           permissions(TC.p, TC.set_perms, ec);
           TEST_CHECK(!ec);
           auto pp = status(TC.p).permissions();
-          TEST_CHECK(pp == TC.expected);
+          auto expected = TC.expected;
+#ifdef _WIN32
+          expected |= perms::owner_read | perms::group_read | perms::others_read;
+          expected |= perms::owner_exec | perms::group_exec | perms::others_exec;
+          auto write = perms::owner_write | perms::group_write | perms::others_write;
+          if ((expected & write) != perms::none)
+            expected |= write;
+#endif
+          TEST_CHECK(pp == expected);
         }
     }
 }
 
+#ifndef _WIN32
+// This test isn't currently meaningful on Windows; the windows file
+// permissions visible via std::filesystem doesn't show any difference
+// between owner/group/others.
 TEST_CASE(test_no_resolve_symlink_on_symlink)
 {
     scoped_test_env env;
@@ -180,5 +200,6 @@ TEST_CASE(test_no_resolve_symlink_on_symlink)
         TEST_CHECK(symlink_status(sym).permissions() == expected_link_perms);
     }
 }
+#endif
 
 TEST_SUITE_END()
