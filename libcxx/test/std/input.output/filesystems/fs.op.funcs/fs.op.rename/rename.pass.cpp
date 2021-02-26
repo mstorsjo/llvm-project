@@ -62,7 +62,10 @@ TEST_CASE(test_error_reporting)
     } cases[] = {
         {dne, dne},
         {file, dir},
+#ifndef _WIN32
+        // Overwriting a file with a directory isn't an error with MoveFileExW.
         {dir, file}
+#endif
     };
     for (auto& TC : cases) {
         auto from_before = status(TC.from);
