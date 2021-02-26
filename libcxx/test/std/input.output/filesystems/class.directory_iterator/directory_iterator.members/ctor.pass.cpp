@@ -84,6 +84,9 @@ TEST_CASE(test_construction_from_bad_path)
     }
 }
 
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
+#ifndef _WIN32
 TEST_CASE(access_denied_test_case)
 {
     using namespace fs;
@@ -118,6 +121,7 @@ TEST_CASE(access_denied_test_case)
         TEST_CHECK(it == directory_iterator{});
     }
 }
+#endif
 
 
 TEST_CASE(access_denied_to_file_test_case)

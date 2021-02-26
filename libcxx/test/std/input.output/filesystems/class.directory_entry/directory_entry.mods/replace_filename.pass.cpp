@@ -123,6 +123,9 @@ TEST_CASE(test_replace_filename_calls_refresh) {
   }
 }
 
+#ifndef _WIN32
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
 TEST_CASE(test_replace_filename_propagates_error) {
   using namespace fs;
   scoped_test_env env;
@@ -165,5 +168,6 @@ TEST_CASE(test_replace_filename_propagates_error) {
     TEST_CHECK(ErrorIs(ec, std::errc::permission_denied));
   }
 }
+#endif
 
 TEST_SUITE_END()

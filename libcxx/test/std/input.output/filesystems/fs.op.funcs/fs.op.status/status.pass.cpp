@@ -54,6 +54,9 @@ TEST_CASE(test_status_not_found)
     }
 }
 
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
+#ifndef _WIN32
 TEST_CASE(test_status_cannot_resolve)
 {
     scoped_test_env env;
@@ -96,6 +99,7 @@ TEST_CASE(test_status_cannot_resolve)
 #endif
     }
 }
+#endif
 
 TEST_CASE(status_file_types_test)
 {

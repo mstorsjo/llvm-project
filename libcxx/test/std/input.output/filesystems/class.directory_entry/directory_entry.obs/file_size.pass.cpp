@@ -120,7 +120,9 @@ TEST_CASE(error_reporting) {
   const path sym_out_of_dir = env.create_symlink("dir/file", "sym");
   const path sym_in_dir = env.create_symlink("file2", "dir/sym2");
 
+#ifndef _WIN32
   const perms old_perms = status(dir).permissions();
+#endif
 
   // test a file which doesn't exist
   {
@@ -163,6 +165,9 @@ TEST_CASE(error_reporting) {
                              "directory_entry::file_size");
     TEST_CHECK_THROW_RESULT(filesystem_error, Checker, ent.file_size());
   }
+  // Windows doesn't support setting perms::none to trigger failures
+  // reading directories.
+#ifndef _WIN32
   // test a file w/o appropriate permissions.
   {
     directory_entry ent;
@@ -239,6 +244,7 @@ TEST_CASE(error_reporting) {
     TEST_CHECK(!ec);
     TEST_CHECK_NO_THROW(ent.file_size());
   }
+#endif
 }
 
 TEST_SUITE_END()

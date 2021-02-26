@@ -567,6 +567,9 @@ TEST_CASE(test_value_on_failure)
     TEST_CHECK(ErrorIs(ec, std::errc::no_such_file_or_directory));
 }
 
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
+#ifndef _WIN32
 TEST_CASE(test_exists_fails)
 {
     scoped_test_env env;
@@ -582,5 +585,6 @@ TEST_CASE(test_exists_fails)
                              "last_write_time");
     TEST_CHECK_THROW_RESULT(filesystem_error, Checker, last_write_time(file));
 }
+#endif
 
 TEST_SUITE_END()

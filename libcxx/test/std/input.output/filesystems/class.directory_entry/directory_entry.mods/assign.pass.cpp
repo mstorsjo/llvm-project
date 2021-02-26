@@ -97,6 +97,9 @@ TEST_CASE(test_assign_calls_refresh) {
   }
 }
 
+#ifndef _WIN32
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
 TEST_CASE(test_assign_propagates_error) {
   using namespace fs;
   scoped_test_env env;
@@ -127,5 +130,6 @@ TEST_CASE(test_assign_propagates_error) {
     TEST_CHECK(!ec);
   }
 }
+#endif
 
 TEST_SUITE_END()

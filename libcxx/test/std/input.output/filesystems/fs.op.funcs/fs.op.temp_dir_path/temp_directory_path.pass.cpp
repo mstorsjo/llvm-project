@@ -89,12 +89,16 @@ TEST_CASE(basic_tests)
         TEST_CHECK(ec);
         TEST_CHECK(ret == "");
 
+        // Windows doesn't support setting perms::none to trigger failures
+        // reading directories.
+#ifndef _WIN32
         // Set the env variable to point to a dir we can't access
         PutEnv(TC.name, nested_dir);
         ec = GetTestEC();
         ret = temp_directory_path(ec);
         TEST_CHECK(ErrorIs(ec, std::errc::permission_denied));
         TEST_CHECK(ret == "");
+#endif
 
         // Set the env variable to point to a non-existent dir
         PutEnv(TC.name, TC.p / "does_not_exist");

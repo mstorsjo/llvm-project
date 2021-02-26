@@ -65,6 +65,9 @@ TEST_CASE(test_is_empty_file)
     TEST_CHECK(!is_empty(static_env.NonEmptyFile));
 }
 
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
+#ifndef _WIN32
 TEST_CASE(test_is_empty_fails)
 {
     scoped_test_env env;
@@ -93,7 +96,7 @@ TEST_CASE(test_directory_access_denied)
 
     TEST_CHECK_THROW(filesystem_error, is_empty(dir));
 }
-
+#endif
 
 #ifndef _WIN32
 TEST_CASE(test_fifo_fails)

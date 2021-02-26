@@ -71,6 +71,9 @@ TEST_CASE(test_exist_not_found)
     TEST_CHECK(!ec);
 }
 
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
+#ifndef _WIN32
 TEST_CASE(test_exists_fails)
 {
     scoped_test_env env;
@@ -84,6 +87,7 @@ TEST_CASE(test_exists_fails)
 
     TEST_CHECK_THROW(filesystem_error, exists(file));
 }
+#endif
 
 TEST_CASE(test_name_too_long) {
     std::string long_name(2500, 'a');

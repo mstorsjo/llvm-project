@@ -60,6 +60,9 @@ TEST_CASE(test_refresh_ec_method) {
   }
 }
 
+#ifndef _WIN32
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
 TEST_CASE(refresh_on_file_dne) {
   using namespace fs;
   scoped_test_env env;
@@ -94,6 +97,7 @@ TEST_CASE(refresh_on_file_dne) {
     TEST_CHECK(!ent.exists());
   }
 }
+#endif
 
 void remove_if_exists(const fs::path& p) {
   std::error_code ec;
@@ -122,8 +126,10 @@ TEST_CASE(refresh_on_bad_symlink) {
 
     LIBCPP_ONLY(permissions(dir, perms::none));
     TEST_CHECK(ent.is_symlink());
+#ifndef _WIN32
     TEST_CHECK(!ent.is_regular_file());
     TEST_CHECK(!ent.exists());
+#endif
   }
   permissions(dir, old_perms);
   env.create_file("dir/file", 101);
@@ -141,10 +147,15 @@ TEST_CASE(refresh_on_bad_symlink) {
     TEST_CHECK(!ec); // we don't report bad symlinks as an error.
 
     LIBCPP_ONLY(permissions(dir, perms::none));
+#ifndef _WIN32
     TEST_CHECK(!ent.exists());
+#endif
   }
 }
 
+#ifndef _WIN32
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
 TEST_CASE(refresh_cannot_resolve) {
   using namespace fs;
   scoped_test_env env;
@@ -218,6 +229,7 @@ TEST_CASE(refresh_cannot_resolve) {
     TEST_CHECK_NO_THROW(ent_sym2);
   }
 }
+#endif
 
 TEST_CASE(refresh_doesnt_throw_on_dne_but_reports_it) {
   using namespace fs;
@@ -265,6 +277,9 @@ TEST_CASE(refresh_doesnt_throw_on_dne_but_reports_it) {
   }
 }
 
+#ifndef _WIN32
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
 TEST_CASE(access_cache_after_refresh_fails) {
   using namespace fs;
   scoped_test_env env;
@@ -336,5 +351,6 @@ TEST_CASE(access_cache_after_refresh_fails) {
   }
 #undef CHECK_ACCESS
 }
+#endif
 
 TEST_SUITE_END()

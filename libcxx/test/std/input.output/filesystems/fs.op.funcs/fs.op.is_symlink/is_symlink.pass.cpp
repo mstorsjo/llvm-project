@@ -89,6 +89,9 @@ TEST_CASE(test_exist_not_found)
     TEST_CHECK(ec);
 }
 
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
+#ifndef _WIN32
 TEST_CASE(test_is_symlink_fails)
 {
     scoped_test_env env;
@@ -102,5 +105,6 @@ TEST_CASE(test_is_symlink_fails)
 
     TEST_CHECK_THROW(filesystem_error, is_symlink(file));
 }
+#endif
 
 TEST_SUITE_END()

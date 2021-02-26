@@ -146,6 +146,9 @@ TEST_CASE(path_ctor_dne) {
   }
 }
 
+#ifndef _WIN32
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
 TEST_CASE(path_ctor_cannot_resolve) {
   using namespace fs;
   scoped_test_env env;
@@ -180,5 +183,6 @@ TEST_CASE(path_ctor_cannot_resolve) {
     TEST_CHECK_NO_THROW(directory_entry(sym_out_of_dir));
   }
 }
+#endif
 
 TEST_SUITE_END()

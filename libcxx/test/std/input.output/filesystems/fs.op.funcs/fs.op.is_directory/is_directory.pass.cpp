@@ -75,6 +75,9 @@ TEST_CASE(static_env_test)
     TEST_CHECK(!is_directory(static_env.File));
 }
 
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
+#ifndef _WIN32
 TEST_CASE(test_is_directory_fails)
 {
     scoped_test_env env;
@@ -88,5 +91,6 @@ TEST_CASE(test_is_directory_fails)
 
     TEST_CHECK_THROW(filesystem_error, is_directory(dir2));
 }
+#endif
 
 TEST_SUITE_END()

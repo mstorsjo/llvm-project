@@ -34,6 +34,9 @@ TEST_CASE(test_signatures)
     ASSERT_NOEXCEPT(fs::remove(p, ec));
 }
 
+// Windows doesn't support setting perms::none to trigger failures
+// reading directories.
+#ifndef _WIN32
 TEST_CASE(test_error_reporting)
 {
     auto checkThrow = [](path const& f, const std::error_code& ec)
@@ -83,6 +86,7 @@ TEST_CASE(test_error_reporting)
         TEST_CHECK(!ec);
     }
 }
+#endif
 
 TEST_CASE(basic_remove_test)
 {
