@@ -55,10 +55,16 @@ TEST_CASE(basic_tests)
       std::string name;
       path p;
     } cases[] = {
+#ifdef _WIN32
+        {"TMP", env.create_dir("dir2")},
+        {"TEMP", env.create_dir("dir3")},
+        {"USERPROFILE", env.create_dir("dir4")}
+#else
         {"TMPDIR", env.create_dir("dir1")},
         {"TMP", env.create_dir("dir2")},
         {"TEMP", env.create_dir("dir3")},
         {"TEMPDIR", env.create_dir("dir4")}
+#endif
     };
     for (auto& TC : cases) {
         PutEnv(TC.name, TC.p);
@@ -116,7 +122,10 @@ TEST_CASE(basic_tests)
         std::error_code ec = GetTestEC();
         path ret = temp_directory_path(ec);
         TEST_CHECK(!ec);
+#ifndef _WIN32
+        // On windows, a different fallback is used.
         TEST_CHECK(ret == "/tmp");
+#endif
         TEST_CHECK(is_directory(ret));
     }
 }
