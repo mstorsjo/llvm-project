@@ -28,7 +28,9 @@
 #include "filesystem_test_helper.h"
 
 #include <fcntl.h>
+#ifndef _WIN32
 #include <sys/time.h>
+#endif
 #include <sys/stat.h>
 
 using namespace fs;
@@ -46,6 +48,9 @@ using std::chrono::duration_cast;
 #if defined(__APPLE__)
 TimeSpec extract_mtime(StatT const& st) { return st.st_mtimespec; }
 TimeSpec extract_atime(StatT const& st) { return st.st_atimespec; }
+#elif defined(_WIN32)
+TimeSpec extract_mtime(StatT const& st) { return TimeSpec{st.st_mtime, 0}; }
+TimeSpec extract_atime(StatT const& st) { return TimeSpec{st.st_atime, 0}; }
 #else
 TimeSpec extract_mtime(StatT const& st) { return st.st_mtim; }
 TimeSpec extract_atime(StatT const& st) { return st.st_atim; }
@@ -122,6 +127,7 @@ TimeSpec LastAccessTime(path const& p) { return GetTimes(p).access; }
 
 TimeSpec LastWriteTime(path const& p) { return GetTimes(p).write; }
 
+#ifndef _WIN32
 Times GetSymlinkTimes(path const& p) {
   StatT st;
   if (::lstat(p.string().c_str(), &st) == -1) {
@@ -137,6 +143,7 @@ Times GetSymlinkTimes(path const& p) {
     res.write = extract_mtime(st);
     return res;
 }
+#endif
 
 namespace {
 
@@ -250,6 +257,12 @@ static const bool SupportsMinRoundTrip = [] {
 } // end namespace
 
 static bool CompareTime(TimeSpec t1, TimeSpec t2) {
+#ifdef _WIN32
+  // Windows does support file times with a 100 ns unit, but this test
+  // only uses the CRT stat() to inspect the tested files, and stat() only
+  // returns times with second granularity.
+  return t1.tv_sec == t2.tv_sec;
+#else
   if (SupportsNanosecondRoundTrip)
     return CompareTimeExact(t1, t2);
   if (t1.tv_sec != t2.tv_sec)
@@ -259,6 +272,7 @@ static bool CompareTime(TimeSpec t1, TimeSpec t2) {
   if (WorkaroundStatTruncatesToSeconds)
    return diff < duration_cast<NanoSec>(Sec(1)).count();
   return diff < duration_cast<NanoSec>(MicroSec(1)).count();
+#endif
 }
 
 static bool CompareTime(file_time_type t1, TimeSpec t2) {
@@ -349,6 +363,7 @@ TEST_CASE(read_last_write_time_static_env_test)
     static_test_env static_env;
     using C = file_time_type::clock;
     file_time_type min = file_time_type::min();
+    SleepFor(MicroSec(30000));
     {
         file_time_type ret = last_write_time(static_env.File);
         TEST_CHECK(ret != min);
@@ -471,6 +486,7 @@ TEST_CASE(set_last_write_time_dynamic_env_test)
     }
 }
 
+#ifndef _WIN32
 TEST_CASE(last_write_time_symlink_test)
 {
     using Clock = file_time_type::clock;
@@ -502,6 +518,7 @@ TEST_CASE(last_write_time_symlink_test)
     Times sym_times = GetSymlinkTimes(sym);
     TEST_CHECK(CompareTime(sym_times.write, old_sym_times.write));
 }
+#endif
 
 
 TEST_CASE(test_write_min_time)
