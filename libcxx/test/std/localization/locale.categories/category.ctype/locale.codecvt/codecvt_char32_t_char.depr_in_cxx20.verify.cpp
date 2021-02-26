@@ -13,6 +13,9 @@
 
 // UNSUPPORTED: c++03, c++11, c++14, c++17
 
+// std::mbstate_t evaluates to _Mbstatet, not __mbstate_t on windows
+// UNSUPPORTED: windows
+
 #include <locale>
 
 #include "../with_public_dtor.hpp"
