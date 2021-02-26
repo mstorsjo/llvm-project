@@ -10,6 +10,7 @@
 // REQUIRES: host-has-gdb
 // UNSUPPORTED: libcpp-has-no-localization
 // UNSUPPORTED: c++03
+// UNSUPPORTED: windows
 
 // RUN: %{cxx} %{flags} %s -o %t.exe %{compile_flags} -g %{link_flags}
 // Ensure locale-independence for unicode tests.
