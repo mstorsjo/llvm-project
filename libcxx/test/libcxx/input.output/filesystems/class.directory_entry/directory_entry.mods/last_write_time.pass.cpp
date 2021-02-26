@@ -9,6 +9,10 @@
 // UNSUPPORTED: c++03
 // ADDITIONAL_COMPILE_FLAGS: -I %S/../../../../../../src/filesystem
 
+// The internal header filesystem_common.h header doesn't provide
+// set_file_times when targeting windows.
+// UNSUPPORTED: windows
+
 // <filesystem>
 
 // class directory_entry
