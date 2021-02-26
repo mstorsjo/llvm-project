@@ -311,6 +311,7 @@ int main(int, char**)
     static_assert(std::alignment_of<T1>::value == 8, "");
     static_assert(sizeof(T1) == 16, "");
     }
+#ifndef _WIN32
   {
     const int Align = 65536;
     typedef typename std::aligned_storage<1, Align>::type T1;
@@ -319,6 +320,7 @@ int main(int, char**)
     static_assert(std::alignment_of<T1>::value == Align, "");
     static_assert(sizeof(T1) == Align, "");
   }
+#endif
 
   return 0;
 }
