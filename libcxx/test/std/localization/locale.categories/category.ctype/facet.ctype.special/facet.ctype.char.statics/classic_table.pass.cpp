@@ -33,13 +33,21 @@ int main(int, char**)
         mask set = 0;
 
         if ( i  < 32  || i  > 126 ) set |= F::cntrl;
+#ifndef _WIN32
         if ( i >= 32  && i <= 126 ) set |= F::print;
+#endif
 
         if (( i >= 9 && i <= 13) || i == 32 ) set |= F::space;
-        if ( i == 9 || i == 32 ) set |= F::blank;
+        if (
+#ifndef _WIN32
+            i == 9 ||
+#endif
+            i == 32 ) set |= F::blank;
 
+#ifndef _WIN32
         if ( i >= 'A' && i <= 'Z' ) set |= F::alpha;
         if ( i >= 'a' && i <= 'z' ) set |= F::alpha;
+#endif
         if ( i >= 'A' && i <= 'Z' ) set |= F::upper;
         if ( i >= 'a' && i <= 'z' ) set |= F::lower;
 
