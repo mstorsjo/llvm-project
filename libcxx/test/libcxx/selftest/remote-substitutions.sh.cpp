@@ -19,6 +19,9 @@
 // RUN: %{exec} %t.exe 0
 // RUN: %{exec} bash -c '! %t.exe 1'
 
+// WIP: Bash is not available when cross testing on windows.
+// UNSUPPORTED: windows
+
 #include <cassert>
 #include <cstdlib>
 

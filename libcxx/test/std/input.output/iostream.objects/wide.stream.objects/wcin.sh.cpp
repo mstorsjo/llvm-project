@@ -12,6 +12,8 @@
 
 // istream wcin;
 
+// UNSUPPORTED: windows
+
 // FILE_DEPENDENCIES: ../send-stdin.sh
 // RUN: %{build}
 // RUN: %{exec} bash send-stdin.sh "%t.exe" "1234"

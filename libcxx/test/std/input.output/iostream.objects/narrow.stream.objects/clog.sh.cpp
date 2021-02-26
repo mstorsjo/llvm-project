@@ -10,6 +10,8 @@
 
 // istream clog;
 
+// UNSUPPORTED: windows
+
 // FILE_DEPENDENCIES: ../check-stderr.sh
 // RUN: %{build}
 // RUN: %{exec} bash check-stderr.sh "%t.exe" "1234"
