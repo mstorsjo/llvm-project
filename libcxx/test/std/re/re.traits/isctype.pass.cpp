@@ -140,9 +140,13 @@ int main(int, char**)
 
         s = "xdigit";
         assert(!t.isctype('\n', t.lookup_classname(s.begin(), s.end())));
+#ifndef _WIN32
         assert(!t.isctype('_', t.lookup_classname(s.begin(), s.end())));
+#endif
         assert( t.isctype('a', t.lookup_classname(s.begin(), s.end())));
+#ifndef _WIN32
         assert(!t.isctype('Z', t.lookup_classname(s.begin(), s.end())));
+#endif
         assert( t.isctype('5', t.lookup_classname(s.begin(), s.end())));
         assert(!t.isctype(' ', t.lookup_classname(s.begin(), s.end())));
         assert(!t.isctype('-', t.lookup_classname(s.begin(), s.end())));
@@ -269,9 +273,13 @@ int main(int, char**)
 
         s = L"xdigit";
         assert(!t.isctype(L'\n', t.lookup_classname(s.begin(), s.end())));
+#ifndef _WIN32
         assert(!t.isctype(L'_', t.lookup_classname(s.begin(), s.end())));
+#endif
         assert( t.isctype(L'a', t.lookup_classname(s.begin(), s.end())));
+#ifndef _WIN32
         assert(!t.isctype(L'Z', t.lookup_classname(s.begin(), s.end())));
+#endif
         assert( t.isctype(L'5', t.lookup_classname(s.begin(), s.end())));
         assert(!t.isctype(L' ', t.lookup_classname(s.begin(), s.end())));
         assert(!t.isctype(L'-', t.lookup_classname(s.begin(), s.end())));

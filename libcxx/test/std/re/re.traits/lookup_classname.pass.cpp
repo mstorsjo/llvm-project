@@ -65,7 +65,9 @@ int main(int, char**)
     LIBCPP_ASSERT((std::ctype_base::alpha  & std::regex_traits<char>::__regex_word) == 0);
     LIBCPP_ASSERT((std::ctype_base::digit  & std::regex_traits<char>::__regex_word) == 0);
     LIBCPP_ASSERT((std::ctype_base::punct  & std::regex_traits<char>::__regex_word) == 0);
+#ifndef _WIN32
     LIBCPP_ASSERT((std::ctype_base::xdigit & std::regex_traits<char>::__regex_word) == 0);
+#endif
     LIBCPP_ASSERT((std::ctype_base::blank  & std::regex_traits<char>::__regex_word) == 0);
 
     test("d", std::ctype_base::digit);
@@ -147,10 +149,12 @@ int main(int, char**)
     test("upper", std::ctype_base::upper | std::ctype_base::alpha, true);
     test("Upper", std::ctype_base::upper | std::ctype_base::alpha, true);
 
+#ifndef _WIN32
     test("xdigit", std::ctype_base::xdigit);
     test("XDIGIT", std::ctype_base::xdigit);
     test("xdigit", std::ctype_base::xdigit, true);
     test("Xdigit", std::ctype_base::xdigit, true);
+#endif
 
     test("dig", std::ctype_base::mask());
     test("", std::ctype_base::mask());
@@ -235,10 +239,12 @@ int main(int, char**)
     test(L"upper", std::ctype_base::upper | std::ctype_base::alpha, true);
     test(L"Upper", std::ctype_base::upper | std::ctype_base::alpha, true);
 
+#ifndef _WIN32
     test(L"xdigit", std::ctype_base::xdigit);
     test(L"XDIGIT", std::ctype_base::xdigit);
     test(L"xdigit", std::ctype_base::xdigit, true);
     test(L"Xdigit", std::ctype_base::xdigit, true);
+#endif
 
     test(L"dig", std::ctype_base::mask());
     test(L"", std::ctype_base::mask());
