@@ -698,7 +698,7 @@ static path __do_absolute(const path& p, path* cwd, error_code* ec) {
 
 path __absolute(const path& p, error_code* ec) {
   path cwd;
-  return __do_absolute(p, &cwd, ec);
+  return __do_absolute(p, &cwd, ec).make_preferred();
 }
 
 path __canonical(path const& orig_p, error_code* ec) {
