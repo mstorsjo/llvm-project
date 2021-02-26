@@ -10876,6 +10876,7 @@ void test5()
                             }
                         }
                     }
+#ifndef _WIN32
                     showpos(ios);
                     {
                         noshowpoint(ios);
@@ -11021,7 +11022,9 @@ void test5()
                             }
                         }
                     }
+#endif
                 }
+#ifndef _WIN32
                 uppercase(ios);
                 {
                     noshowpos(ios);
@@ -11315,6 +11318,7 @@ void test5()
                         }
                     }
                 }
+#endif
             }
             ios.precision(1);
             {}
@@ -22622,6 +22626,7 @@ void test10()
 
 void test11()
 {
+#ifndef _WIN32
     char str[200];
     output_iterator<char*> iter;
     std::locale lc = std::locale::classic();
@@ -24408,6 +24413,7 @@ void test11()
             }
         }
     }
+#endif
 }
 
 void test12()

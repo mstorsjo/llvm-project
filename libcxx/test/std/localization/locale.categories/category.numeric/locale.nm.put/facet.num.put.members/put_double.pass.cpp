@@ -14296,6 +14296,7 @@ void test6()
 
 void test7()
 {
+#ifndef _WIN32
     char str[200];
     output_iterator<char*> iter;
     std::locale lc = std::locale::classic();
@@ -16082,10 +16083,12 @@ void test7()
             }
         }
     }
+#endif
 }
 
 void test8()
 {
+#if 0
     char str[200];
     output_iterator<char*> iter;
     std::locale lc = std::locale::classic();
@@ -17872,6 +17875,7 @@ void test8()
             }
         }
     }
+#endif
 }
 
 int main(int, char**)
