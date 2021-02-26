@@ -33,6 +33,7 @@
 # include <windows.h>
 # include <io.h>
 # include <winioctl.h>
+# include <sys/stat.h>
 #else
 # include <unistd.h>
 # include <sys/stat.h>
@@ -303,8 +304,16 @@ int rename(const wchar_t *from, const wchar_t *to) {
   return 0;
 }
 
-template <class... Args> int open(const wchar_t *filename, Args... args) {
-  return _wopen(filename, args...);
+int open(const wchar_t *filename, int flags) {
+  return _wopen(filename, flags);
+}
+int open(const wchar_t *filename, int flags, int st_mode) {
+  int pmode = 0;
+  if (st_mode & 0400)
+    pmode |= _S_IREAD;
+  if (st_mode & 0200)
+    pmode |= _S_IWRITE;
+  return _wopen(filename, flags, pmode);
 }
 int close(int fd) { return _close(fd); }
 int chdir(const wchar_t *path) { return _wchdir(path); }
