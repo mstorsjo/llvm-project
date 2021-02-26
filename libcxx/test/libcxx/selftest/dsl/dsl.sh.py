@@ -17,6 +17,9 @@
 # RUN:              x%{escaped_link_flags}
 # END.
 
+# WIP: This fails in cross test scenarios.
+# UNSUPPORTED: windows
+
 import base64
 import copy
 import os
