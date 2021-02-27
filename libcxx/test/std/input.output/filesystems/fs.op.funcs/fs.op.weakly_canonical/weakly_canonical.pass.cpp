@@ -50,7 +50,14 @@ int main(int, char**) {
       {static_env.SymlinkToDir / "dir2/./", static_env.Dir / "dir2"},
       {static_env.SymlinkToDir / "dir2/DNE/./", static_env.Dir / "dir2/DNE/"},
       {static_env.SymlinkToDir / "dir2", static_env.Dir2},
+#ifdef _WIN32
+      // On windows, this path is considered to exist (even though it
+      // passes through a nonexistent directory), and thus is returned
+      // without a trailing slash, see the fixme above.
+      {static_env.SymlinkToDir / "dir2/../dir2/DNE/..", static_env.Dir2},
+#else
       {static_env.SymlinkToDir / "dir2/../dir2/DNE/..", static_env.Dir2 / ""},
+#endif
       {static_env.SymlinkToDir / "dir2/dir3/../DNE/DNE2", static_env.Dir2 / "DNE/DNE2"},
       {static_env.Dir / "../dir1", static_env.Dir},
       {static_env.Dir / "./.", static_env.Dir},
