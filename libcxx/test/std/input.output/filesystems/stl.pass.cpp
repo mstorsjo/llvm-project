@@ -3622,6 +3622,7 @@ void test_create_directory() {
     }
 
     // test VSO-654638 where create_directory(p, existing_p) was doing copy_symlink behavior
+#if 0
     {
         error_code ec;
         create_directory_symlink(nonexistentPaths[0], p, ec);
@@ -3638,6 +3639,7 @@ void test_create_directory() {
             EXPECT(good(ec));
         }
     }
+#endif
 
     // test D1164R0 Make create_directory() Intuitive
     {
