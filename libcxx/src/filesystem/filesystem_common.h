@@ -114,7 +114,6 @@ static string format_string_imp(const char* msg, ...) {
 #define PS_FMT "%s"
 #endif
 
-const path::value_type* unwrap(path::string_type const& s) { return s.c_str(); }
 const path::value_type* unwrap(path const& p) { return p.native().c_str(); }
 template <class Arg>
 Arg const& unwrap(Arg const& a) {
