@@ -57,8 +57,8 @@ errc __win_err_to_errc(int err);
 
 namespace {
 
-static string format_string_imp(const char* msg, ...) {
-  // we might need a second shot at this, so pre-emptivly make a copy
+static _LIBCPP_PRINTFILE(1, 0) string
+    format_string_impl(const char* msg, va_list& args) {
   struct GuardVAList {
     va_list& target;
     bool active = true;
@@ -73,10 +73,9 @@ static string format_string_imp(const char* msg, ...) {
         va_end(target);
     }
   };
-  va_list args;
-  va_start(args, msg);
-  GuardVAList args_guard(args);
 
+  GuardVAList args_guard(args);
+  // we might need a second shot at this, so pre-emptivly make a copy
   va_list args_cp;
   va_copy(args_cp, args);
   GuardVAList args_copy_guard(args_cp);
@@ -103,6 +102,7 @@ static string format_string_imp(const char* msg, ...) {
   size_with_null = static_cast<size_t>(ret) + 1;
   result.__resize_default_init(size_with_null - 1);
   ret = ::vsnprintf(&result[0], size_with_null, msg, args);
+  args_guard.clear();
   _LIBCPP_ASSERT(static_cast<size_t>(ret) == (size_with_null - 1), "TODO");
 
   return result;
@@ -114,17 +114,10 @@ static string format_string_imp(const char* msg, ...) {
 #define PS_FMT "%s"
 #endif
 
-const path::value_type* unwrap(path::string_type const& s) { return s.c_str(); }
-const path::value_type* unwrap(path const& p) { return p.native().c_str(); }
-template <class Arg>
-Arg const& unwrap(Arg const& a) {
-  static_assert(!is_class<Arg>::value, "cannot pass class here");
-  return a;
-}
-
-template <class... Args>
-string format_string(const char* fmt, Args const&... args) {
-  return format_string_imp(fmt, unwrap(args)...);
+static _LIBCPP_PRINTFILE(1, 2) string format_string(const char* msg, ...) {
+  va_list args;
+  va_start(args, msg);
+  return format_string_impl(msg, args);
 }
 
 error_code capture_errno() {
@@ -196,14 +189,15 @@ struct ErrorHandler {
     _LIBCPP_UNREACHABLE();
   }
 
-  template <class... Args>
-  T report(const error_code& ec, const char* msg, Args const&... args) const {
+  _LIBCPP_PRINTFILE(3, 0)
+  T report_impl(const error_code& ec, const char* msg, va_list& args) const {
     if (ec_) {
+      va_end(args);
       *ec_ = ec;
       return error_value<T>();
     }
     string what =
-        string("in ") + func_name_ + ": " + format_string(msg, args...);
+        string("in ") + func_name_ + ": " + format_string_impl(msg, args);
     switch (bool(p1_) + bool(p2_)) {
     case 0:
       __throw_filesystem_error(what, ec);
@@ -215,11 +209,20 @@ struct ErrorHandler {
     _LIBCPP_UNREACHABLE();
   }
 
+  _LIBCPP_PRINTFILE(3, 4)
+  T report(const error_code& ec, const char* msg, ...) const {
+    va_list args;
+    va_start(args, msg);
+    return report_impl(ec, msg, args);
+  }
+
   T report(errc const& err) const { return report(make_error_code(err)); }
 
-  template <class... Args>
-  T report(errc const& err, const char* msg, Args const&... args) const {
-    return report(make_error_code(err), msg, args...);
+  _LIBCPP_PRINTFILE(3, 4)
+  T report(errc const& err, const char* msg, ...) const {
+    va_list args;
+    va_start(args, msg);
+    return report_impl(make_error_code(err), msg, args);
   }
 
 private:

@@ -1449,11 +1449,11 @@ path __temp_directory_path(error_code* ec) {
   error_code m_ec;
   file_status st = detail::posix_stat(p, &m_ec);
   if (!status_known(st))
-    return err.report(m_ec, "cannot access path \"" PS_FMT "\"", p);
+    return err.report(m_ec, "cannot access path \"" PS_FMT "\"", p.c_str());
 
   if (!exists(st) || !is_directory(st))
-    return err.report(errc::not_a_directory, "path \"" PS_FMT "\" is not a directory",
-                      p);
+    return err.report(errc::not_a_directory,
+                      "path \"" PS_FMT "\" is not a directory", p.c_str());
 
   return p;
 }

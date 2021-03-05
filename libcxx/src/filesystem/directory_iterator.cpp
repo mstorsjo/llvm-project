@@ -272,7 +272,7 @@ directory_iterator& directory_iterator::__increment(error_code* ec) {
     path root = move(__imp_->__root_);
     __imp_.reset();
     if (m_ec)
-      err.report(m_ec, "at root \"" PS_FMT "\"", root);
+      err.report(m_ec, "at root \"" PS_FMT "\"", root.c_str());
   }
   return *this;
 }
@@ -359,7 +359,7 @@ void recursive_directory_iterator::__advance(error_code* ec) {
   if (m_ec) {
     path root = move(stack.top().__root_);
     __imp_.reset();
-    err.report(m_ec, "at root \"" PS_FMT "\"", root);
+    err.report(m_ec, "at root \"" PS_FMT "\"", root.c_str());
   } else {
     __imp_.reset();
   }
@@ -404,7 +404,7 @@ bool recursive_directory_iterator::__try_recursion(error_code* ec) {
     } else {
       path at_ent = move(curr_it.__entry_.__p_);
       __imp_.reset();
-      err.report(m_ec, "attempting recursion into \"" PS_FMT "\"", at_ent);
+      err.report(m_ec, "attempting recursion into \"" PS_FMT "\"", at_ent.c_str());
     }
   }
   return false;
