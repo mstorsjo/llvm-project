@@ -667,12 +667,6 @@ _FilesystemClock::time_point _FilesystemClock::now() noexcept {
 
 filesystem_error::~filesystem_error() {}
 
-#if defined(_LIBCPP_WIN32API)
-#define PS_FMT "%ls"
-#else
-#define PS_FMT "%s"
-#endif
-
 void filesystem_error::__create_what(int __num_paths) {
   const char* derived_what = system_error::what();
   __storage_->__what_ = [&]() -> string {
