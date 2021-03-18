@@ -241,6 +241,11 @@ class Configuration(object):
                 # using this feature. (Also see llvm.org/PR32730)
                 self.config.available_features.add('LIBCXX-WINDOWS-FIXME')
 
+        if self.lit_config.getBashPath():
+            self.config.available_features.add('bash')
+        if lit.util.which('cp') is not None:
+            self.config.available_features.add('coreutils')
+
     def configure_compile_flags(self):
         self.configure_default_compile_flags()
         # Configure extra flags
