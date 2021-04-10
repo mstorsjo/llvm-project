@@ -77,15 +77,24 @@ define i32 @test_nonvoid_ret() {
 
 declare void @varargs(i32, double, i64, ...)
 define void @test_varargs() {
-  ; COMMON-LABEL: name: test_varargs
-  ; COMMON: bb.1 (%ir-block.0):
-  ; COMMON:   [[C:%[0-9]+]]:_(s32) = G_CONSTANT i32 42
-  ; COMMON:   [[C1:%[0-9]+]]:_(s64) = G_FCONSTANT double 1.000000e+00
-  ; COMMON:   [[C2:%[0-9]+]]:_(s64) = G_CONSTANT i64 12
-  ; COMMON:   $w0 = COPY [[C]](s32)
-  ; COMMON:   $d0 = COPY [[C1]](s64)
-  ; COMMON:   $x1 = COPY [[C2]](s64)
-  ; COMMON:   TCRETURNdi @varargs, 0, csr{{.*}}aarch64_aapcs, implicit $sp, implicit $w0, implicit $d0, implicit $x1
+  ; DARWIN-LABEL: name: test_varargs
+  ; DARWIN: bb.1 (%ir-block.0):
+  ; DARWIN:   [[C:%[0-9]+]]:_(s32) = G_CONSTANT i32 42
+  ; DARWIN:   [[C1:%[0-9]+]]:_(s64) = G_FCONSTANT double 1.000000e+00
+  ; DARWIN:   [[C2:%[0-9]+]]:_(s64) = G_CONSTANT i64 12
+  ; DARWIN:   $w0 = COPY [[C]](s32)
+  ; DARWIN:   $d0 = COPY [[C1]](s64)
+  ; DARWIN:   $x1 = COPY [[C2]](s64)
+  ; DARWIN:   TCRETURNdi @varargs, 0, csr{{.*}}aarch64_aapcs, implicit $sp, implicit $w0, implicit $d0, implicit $x1
+  ; WINDOWS-LABEL: name: test_varargs
+  ; WINDOWS: bb.1 (%ir-block.0):
+  ; WINDOWS:   [[C:%[0-9]+]]:_(s32) = G_CONSTANT i32 42
+  ; WINDOWS:   [[C1:%[0-9]+]]:_(s64) = G_FCONSTANT double 1.000000e+00
+  ; WINDOWS:   [[C2:%[0-9]+]]:_(s64) = G_CONSTANT i64 12
+  ; WINDOWS:   $w0 = COPY [[C]](s32)
+  ; WINDOWS:   $x1 = COPY [[C1]](s64)
+  ; WINDOWS:   $x2 = COPY [[C2]](s64)
+  ; WINDOWS:   TCRETURNdi @varargs, 0, csr_aarch64_aapcs, implicit $sp, implicit $w0, implicit $x1, implicit $x2
   tail call void(i32, double, i64, ...) @varargs(i32 42, double 1.0, i64 12)
   ret void
 }
@@ -107,10 +116,10 @@ define void @test_varargs_2() {
   ; WINDOWS:   [[C2:%[0-9]+]]:_(s64) = G_CONSTANT i64 12
   ; WINDOWS:   [[C3:%[0-9]+]]:_(s64) = G_CONSTANT i64 314
   ; WINDOWS:   $w0 = COPY [[C]](s32)
-  ; WINDOWS:   $d0 = COPY [[C1]](s64)
-  ; WINDOWS:   $x1 = COPY [[C2]](s64)
-  ; WINDOWS:   $x2 = COPY [[C3]](s64)
-  ; WINDOWS:   TCRETURNdi @varargs, 0, csr_aarch64_aapcs, implicit $sp, implicit $w0, implicit $d0, implicit $x1, implicit $x2
+  ; WINDOWS:   $x1 = COPY [[C1]](s64)
+  ; WINDOWS:   $x2 = COPY [[C2]](s64)
+  ; WINDOWS:   $x3 = COPY [[C3]](s64)
+  ; WINDOWS:   TCRETURNdi @varargs, 0, csr_aarch64_aapcs, implicit $sp, implicit $w0, implicit $x1, implicit $x2, implicit $x3
   tail call void(i32, double, i64, ...) @varargs(i32 42, double 1.0, i64 12, i64 314)
   ret void
 }
@@ -143,10 +152,10 @@ define void @test_varargs_3([8 x <2 x double>], <4 x half> %arg) {
   ; WINDOWS:   [[C2:%[0-9]+]]:_(s64) = G_CONSTANT i64 12
   ; WINDOWS:   [[C3:%[0-9]+]]:_(s64) = G_CONSTANT i64 314
   ; WINDOWS:   $w0 = COPY [[C]](s32)
-  ; WINDOWS:   $d0 = COPY [[C1]](s64)
-  ; WINDOWS:   $x1 = COPY [[C2]](s64)
-  ; WINDOWS:   $x2 = COPY [[C3]](s64)
-  ; WINDOWS:   TCRETURNdi @varargs, 0, csr_aarch64_aapcs, implicit $sp, implicit $w0, implicit $d0, implicit $x1, implicit $x2
+  ; WINDOWS:   $x1 = COPY [[C1]](s64)
+  ; WINDOWS:   $x2 = COPY [[C2]](s64)
+  ; WINDOWS:   $x3 = COPY [[C3]](s64)
+  ; WINDOWS:   TCRETURNdi @varargs, 0, csr_aarch64_aapcs, implicit $sp, implicit $w0, implicit $x1, implicit $x2, implicit $x3
   tail call void(i32, double, i64, ...) @varargs(i32 42, double 1.0, i64 12, i64 314)
   ret void
 }
