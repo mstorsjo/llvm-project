@@ -144,6 +144,7 @@ for locale, alts in locales.items():
 # Add features representing the platform name: darwin, linux, windows, etc...
 DEFAULT_FEATURES += [
   Feature(name='darwin', when=lambda cfg: '__APPLE__' in compilerMacros(cfg)),
+  Feature(name='mingw', when=lambda cfg: '__MINGW32__' in compilerMacros(cfg)),
   Feature(name='windows', when=lambda cfg: '_WIN32' in compilerMacros(cfg)),
   Feature(name='windows-dll', when=lambda cfg: '_WIN32' in compilerMacros(cfg) and not '_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS' in compilerMacros(cfg)),
   Feature(name='linux', when=lambda cfg: '__linux__' in compilerMacros(cfg)),
