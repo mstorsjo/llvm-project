@@ -11,7 +11,7 @@
 
 // Libc++ defers to the underlying MSVC library to provide the new/delete
 // definitions, which does not yet provide aligned allocation
-// XFAIL: LIBCXX-WINDOWS-FIXME
+// XFAIL: msvc
 
 // The dylibs shipped before macosx10.13 do not contain the aligned allocation
 // functions, so trying to force using those with -faligned-allocation results

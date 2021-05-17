@@ -8,7 +8,7 @@
 
 // test get_new_handler
 
-// XFAIL: LIBCXX-WINDOWS-FIXME
+// XFAIL: msvc
 
 #include <new>
 #include <cassert>

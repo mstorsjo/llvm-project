@@ -9,7 +9,7 @@
 // UNSUPPORTED: no-exceptions
 
 // This test fails due to a stack overflow
-// XFAIL: LIBCXX-WINDOWS-FIXME
+// XFAIL: msvc
 
 // <exception>
 
