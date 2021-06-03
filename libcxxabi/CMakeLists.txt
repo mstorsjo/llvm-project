@@ -318,7 +318,13 @@ add_compile_flags_if_supported(-Werror=return-type)
 
 # Get warning flags
 add_compile_flags_if_supported(-W)
-add_compile_flags_if_supported(-Wall)
+if (MSVC)
+  # -W4 is the cl.exe/clang-cl equivalent of -Wall. (In cl.exe and clang-cl,
+  # -Wall is equivalent to -Weverything in GCC style compiler drivers.)
+  add_compile_flags_if_supported(-W4)
+else()
+  add_compile_flags_if_supported(-Wall)
+endif()
 add_compile_flags_if_supported(-Wchar-subscripts)
 add_compile_flags_if_supported(-Wconversion)
 add_compile_flags_if_supported(-Wmismatched-tags)

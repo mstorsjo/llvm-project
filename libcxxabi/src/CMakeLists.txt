@@ -18,6 +18,7 @@ set(LIBCXXABI_SOURCES
   fallback_malloc.cpp
   private_typeinfo.cpp
 )
+set(CMAKE_STATIC_LIBRARY_PREFIX "lib")
 
 if (LIBCXXABI_ENABLE_NEW_DELETE_DEFINITIONS)
   list(APPEND LIBCXXABI_SOURCES

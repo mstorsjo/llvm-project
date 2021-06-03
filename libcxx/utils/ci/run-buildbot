@@ -103,13 +103,13 @@ function generate-cmake-libcxx-win() {
     # when building tests) to allow enabling filesystem for running tests,
     # even if it uses a non-permanent ABI.
 
-    generate-cmake-base \
-          -S "${MONOREPO_ROOT}/libcxx" \
+    generate-cmake \
           -DCMAKE_C_COMPILER=clang-cl \
           -DCMAKE_CXX_COMPILER=clang-cl \
           -DLIBCXX_ENABLE_FILESYSTEM=YES \
           -DCMAKE_CXX_FLAGS="-D_LIBCPP_HAS_NO_INT128" \
           -DLIBCXX_TEST_COMPILER_FLAGS="-D_LIBCPP_HAS_NO_INT128" \
+          -DLIBCXX_NO_VCRUNTIME=YES \
           "${@}"
 }
 
