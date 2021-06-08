@@ -258,6 +258,7 @@ unwind_phase2_forced(unw_context_t *uc,
           ", func=%s, lsda=0x%" PRIx64 ", personality=0x%" PRIx64,
           (void *)exception_object, frameInfo.start_ip, functionName,
           frameInfo.lsda, frameInfo.handler);
+      (void)functionName;
     }
 
     // Call stop function at each frame.
