@@ -10,6 +10,7 @@
 
 // UNSUPPORTED: sanitizer-new-delete
 // XFAIL: libcpp-no-vcruntime
+// XFAIL: mingw && windows-dll
 
 #include <new>
 #include <cstddef>
