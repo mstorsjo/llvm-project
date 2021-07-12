@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 // FILE_DEPENDENCIES: test.dat, test2.dat
+// REQUIRES: coreutils
 
 // <fstream>
 

@@ -14,6 +14,7 @@
 //                  ios_base::openmode which = ios_base::in | ios_base::out);
 
 // FILE_DEPENDENCIES: underflow.dat
+// REQUIRES: coreutils
 
 #include <fstream>
 #include <cassert>

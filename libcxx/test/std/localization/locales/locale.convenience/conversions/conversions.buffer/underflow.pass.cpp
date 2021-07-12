@@ -7,6 +7,7 @@
 //===----------------------------------------------------------------------===//
 
 // FILE_DEPENDENCIES: underflow.dat, underflow_utf8.dat
+// REQUIRES: coreutils
 
 // <locale>
 

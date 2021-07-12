@@ -13,6 +13,7 @@
 // UNSUPPORTED: use_system_cxx_lib && target={{.+}}-apple-macosx10.{{9|10|11|12|13|14}}
 
 // FILE_DEPENDENCIES: test.dat
+// REQUIRES: coreutils
 
 // <fstream>
 

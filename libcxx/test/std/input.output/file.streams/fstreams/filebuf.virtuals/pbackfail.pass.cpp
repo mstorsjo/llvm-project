@@ -11,6 +11,7 @@
 // int_type pbackfail(int_type c = traits::eof());
 
 // FILE_DEPENDENCIES: underflow.dat
+// REQUIRES: coreutils
 
 #include <fstream>
 #include <cassert>

@@ -14,6 +14,7 @@
 // explicit basic_ifstream(const wchar_t* s, ios_base::openmode mode = ios_base::in);
 
 // FILE_DEPENDENCIES: test.dat
+// REQUIRES: coreutils
 
 #include <fstream>
 #include <cassert>

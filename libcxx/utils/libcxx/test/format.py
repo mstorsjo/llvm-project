@@ -230,6 +230,8 @@ class CxxStandardLibraryTest(lit.formats.TestFormat):
 
         if re.search('[.]sh[.][^.]+$', filename):
             steps = [ ] # The steps are already in the script
+            if not 'coreutils' in test.config.available_features or not 'bash' in test.config.available_features:
+                return lit.Test.Result(lit.Test.UNSUPPORTED, 'Test {} is unsupported when coreutils/bash are missing')
             return self._executeShTest(test, litConfig, steps)
         elif filename.endswith('.compile.pass.cpp'):
             steps = [
