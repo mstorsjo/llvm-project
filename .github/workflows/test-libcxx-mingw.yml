@@ -1,0 +1,27 @@
+name: libcxx mingw test
+on: [push]
+
+jobs:
+  libcxx-mingw-test:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: clang64
+          update: true
+          install: >-
+            git
+            mingw-w64-clang-x86_64-toolchain
+            mingw-w64-clang-x86_64-cmake
+            mingw-w64-clang-x86_64-ninja
+            mingw-w64-clang-x86_64-python3
+      - uses: actions/checkout@v2
+      - name: CMake configuration
+        run: cmake -B build-libcxx-mingw libcxx/utils/ci/runtimes -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DLLVM_PATH=llvm -DLLVM_ENABLE_PROJECTS="libunwind;libcxxabi;libcxx" -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=ON -DLIBCXX_HAS_WIN32_THREAD_API=ON -DLIBCXX_CXX_ABI=libcxxabi -DLIBCXX_TARGET_INFO="libcxx.test.target_info.MingwLocalTI" -DLIBCXXABI_ENABLE_SHARED=OFF -DLIBCXX_USE_COMPILER_RT=ON -DLIBCXXABI_USE_COMPILER_RT=ON -DLIBCXX_ENABLE_SHARED=ON -DLIBCXXABI_USE_LLVM_UNWINDER=ON -DLIBUNWIND_USE_COMPILER_RT=ON -DLIBCXX_TEST_LINKER_FLAGS="-lunwind" -DLIBCXX_ENABLE_EXPERIMENTAL_LIBRARY=ON -DLIBCXX_TEST_COMPILER_FLAGS="-D_LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS -D__USE_MINGW_ANSI_STDIO=1 -D_LIBCPP_TESTING_DLL" -DCMAKE_C_FLAGS="-D__USE_MINGW_ANSI_STDIO=1" -DCMAKE_CXX_FLAGS="-D__USE_MINGW_ANSI_STDIO=1"
+      - name: Build
+        run: ninja -C build-libcxx-mingw
+      - name: Test
+        run: ninja -C build-libcxx-mingw check-cxx
