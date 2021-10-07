@@ -5,5 +5,5 @@
 // RUN: echo "wrong code" > %t.dir\real\foo.cpp
 // RUN: not %clang_cc1 -fsyntax-only -fdiagnostics-absolute-paths %t.dir\junc\foo.cpp 2>&1 | FileCheck %s
 
-// CHECK-NOT: .dir\real\foo.cpp
-// CHECK: .dir\junc\foo.cpp
+// CHECK-NOT: .dir{{/|\\\real{{/|\\}}foo.cpp
+// CHECK: .dir{{/|\\}}junc{{/|\\}}foo.cpp
