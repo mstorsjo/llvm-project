@@ -183,11 +183,8 @@ TEST(DWARFDie, getDeclFile) {
   std::string DeclFile = MainDie.getDeclFile(
       DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath);
 
-#if defined(_WIN32)
-  EXPECT_EQ(DeclFile, "/tmp\\main.cpp");
-#else
-  EXPECT_EQ(DeclFile, "/tmp/main.cpp");
-#endif
+  std::string Ref = ("/tmp" + llvm::sys::path::get_separator() + "main.cpp").str();
+  EXPECT_EQ(DeclFile, Ref);
 }
 
 TEST(DWARFDie, getDeclFileAbstractOrigin) {
@@ -291,11 +288,8 @@ TEST(DWARFDie, getDeclFileAbstractOrigin) {
   std::string DeclFile = MainDie.getDeclFile(
       DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath);
 
-#if defined(_WIN32)
-  EXPECT_EQ(DeclFile, "/tmp\\main.cpp");
-#else
-  EXPECT_EQ(DeclFile, "/tmp/main.cpp");
-#endif
+  std::string Ref = ("/tmp" + llvm::sys::path::get_separator() + "main.cpp").str();
+  EXPECT_EQ(DeclFile, Ref);
 }
 
 TEST(DWARFDie, getDeclFileSpecification) {
@@ -398,11 +392,8 @@ TEST(DWARFDie, getDeclFileSpecification) {
   std::string DeclFile = MainDie.getDeclFile(
       DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath);
 
-#if defined(_WIN32)
-  EXPECT_EQ(DeclFile, "/tmp\\main.cpp");
-#else
-  EXPECT_EQ(DeclFile, "/tmp/main.cpp");
-#endif
+  std::string Ref = ("/tmp" + llvm::sys::path::get_separator() + "main.cpp").str();
+  EXPECT_EQ(DeclFile, Ref);
 }
 
 TEST(DWARFDie, getDeclFileAbstractOriginAcrossCUBoundary) {
@@ -522,11 +513,8 @@ TEST(DWARFDie, getDeclFileAbstractOriginAcrossCUBoundary) {
   std::string DeclFile = MainDie.getDeclFile(
       DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath);
 
-#if defined(_WIN32)
-  EXPECT_EQ(DeclFile, "/tmp\\main.cpp");
-#else
-  EXPECT_EQ(DeclFile, "/tmp/main.cpp");
-#endif
+  std::string Ref = ("/tmp" + llvm::sys::path::get_separator() + "main.cpp").str();
+  EXPECT_EQ(DeclFile, Ref);
 }
 
 TEST(DWARFDie, getDeclFileSpecificationAcrossCUBoundary) {
@@ -646,11 +634,8 @@ TEST(DWARFDie, getDeclFileSpecificationAcrossCUBoundary) {
   std::string DeclFile = MainDie.getDeclFile(
       DILineInfoSpecifier::FileLineInfoKind::AbsoluteFilePath);
 
-#if defined(_WIN32)
-  EXPECT_EQ(DeclFile, "/tmp\\main.cpp");
-#else
-  EXPECT_EQ(DeclFile, "/tmp/main.cpp");
-#endif
+  std::string Ref = ("/tmp" + llvm::sys::path::get_separator() + "main.cpp").str();
+  EXPECT_EQ(DeclFile, Ref);
 }
 
 } // end anonymous namespace
