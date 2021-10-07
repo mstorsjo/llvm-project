@@ -1,4 +1,5 @@
 # REQUIRES: x86
+# XFAIL: windows
 # RUN: mkdir -p %t
 # RUN: llvm-mc -filetype=obj -triple=x86_64 %s -o %t/foo.o
 # RUN: llvm-mc -filetype=obj -triple=x86_64 /dev/null -o "%t/bar baz.o"

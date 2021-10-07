@@ -11,6 +11,8 @@
 // RUN:     -Rmodule-build -Rmodule-import t.c 2>&1 |\
 // RUN: FileCheck %s -implicit-check-not "remark:" -DWORKDIR=%t
 
+// XFAIL: windows
+// %t passed from lit uses different path style than what clang outputs.
 #include "A.h" // \
 // CHECK: remark: building module 'A'
 // CHECK: remark: building module 'B'

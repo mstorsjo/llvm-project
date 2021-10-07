@@ -45,6 +45,9 @@
 
 #include <stdio.h>
 
+// This captures PREFIX from the output, which uses the input path form,
+// while other paths in the output are normalized to forward slashes.
+// XFAIL: windows
 // CHECK: [[PREFIX:(.*[/\\])+[a-zA-Z0-9.-]+]]
 // CHECK: building module 'cstd' as '[[PREFIX]]{{[/\\]}}[[CONTEXT_HASH:[A-Z0-9]+]]{{[/\\]}}cstd-[[AST_HASH:[A-Z0-9]+]].pcm'
 // CHECK: building module 'cstd' as '{{.*[/\\]}}[[CONTEXT_HASH]]{{[/\\]}}cstd-[[AST_HASH]].pcm'

@@ -1,3 +1,4 @@
+# XFAIL: windows
 ## Show that when "CODE" is used with an address, it forces the found location
 ## to be symbolized as a function (this is the default).
 # REQUIRES: x86-registered-target

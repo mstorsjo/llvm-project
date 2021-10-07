@@ -1,3 +1,5 @@
+// XFAIL: windows
+
 // RUN: mkdir -p %t.foo
 // RUN: cp %s %t.foo/src.s
 // RUN: cd %t.foo
