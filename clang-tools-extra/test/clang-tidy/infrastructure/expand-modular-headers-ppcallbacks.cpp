@@ -45,13 +45,13 @@
 // FIXME: Make the test work in all language modes.
 #include "c.h"
 
+#define m
+// CHECK-MESSAGES: :[[@LINE-1]]:9: warning: invalid case style for macro definition 'm'
+// CHECK-MESSAGES: :[[@LINE-2]]:9: note: FIX-IT applied suggested code changes
+
 // CHECK-MESSAGES: a.h:1:9: warning: invalid case style for macro definition 'a' [readability-identifier-naming]
 // CHECK-MESSAGES: a.h:1:9: note: FIX-IT applied suggested code changes
 // CHECK-MESSAGES: b.h:2:9: warning: invalid case style for macro definition 'b'
 // CHECK-MESSAGES: b.h:2:9: note: FIX-IT applied suggested code changes
 // CHECK-MESSAGES: c.h:2:9: warning: invalid case style for macro definition 'c'
 // CHECK-MESSAGES: c.h:2:9: note: FIX-IT applied suggested code changes
-
-#define m
-// CHECK-MESSAGES: :[[@LINE-1]]:9: warning: invalid case style for macro definition 'm'
-// CHECK-MESSAGES: :[[@LINE-2]]:9: note: FIX-IT applied suggested code changes

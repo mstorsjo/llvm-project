@@ -9,6 +9,7 @@
 //       file-filter\header*.h due to code order between '/' and '\\'.
 // RUN: clang-tidy -checks='-*,google-explicit-constructor' -header-filter='.*' -system-headers %s -- -I %S/Inputs/file-filter/system/.. -isystem %S/Inputs/file-filter/system 2>&1 | FileCheck --check-prefix=CHECK4 %s
 // RUN: clang-tidy -checks='-*,google-explicit-constructor' -header-filter='.*' -system-headers -quiet %s -- -I %S/Inputs/file-filter/system/.. -isystem %S/Inputs/file-filter/system 2>&1 | FileCheck --check-prefix=CHECK4-QUIET %s
+// XFAIL: windows
 
 #include "header1.h"
 // CHECK-NOT: warning:

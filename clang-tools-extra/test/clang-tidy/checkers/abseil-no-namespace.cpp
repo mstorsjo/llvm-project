@@ -3,7 +3,6 @@
 
 /// Warning will not be triggered on internal Abseil code that is included.
 #include "absl/strings/internal-file.h"
-// CHECK-NOT: warning:
 
 /// Warning will be triggered on code that is not internal that is included.
 #include "absl/external-file.h"

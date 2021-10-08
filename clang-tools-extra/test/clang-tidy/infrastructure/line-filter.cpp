@@ -1,5 +1,7 @@
 // RUN: clang-tidy -checks='-*,google-explicit-constructor' -line-filter='[{"name":"line-filter.cpp","lines":[[18,18],[22,22]]},{"name":"header1.h","lines":[[1,2]]},{"name":"header2.h"},{"name":"header3.h"}]' -header-filter='header[12]\.h$' %s -- -I %S/Inputs/line-filter 2>&1 | FileCheck %s
 
+// XFAIL: windows
+
 #include "header1.h"
 // CHECK-NOT: header1.h:{{.*}} warning
 // CHECK: header1.h:1:12: warning: single-argument constructors must be marked explicit

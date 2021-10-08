@@ -3,8 +3,8 @@
 
 #include "absl/strings/internal-file.h"
 #include "absl/flags/internal-file.h"
-// CHECK-NOT: warning:
 
+// TODO: The warnings are printed in different order, as the backslash path from -I is kept as is, while the source file pathname is normalized
 #include "absl/external-file.h"
 // CHECK: absl/external-file.h:6:24: warning: do not reference any 'internal' namespaces; those implementation details are reserved to Abseil [abseil-no-internal-dependencies]
 
