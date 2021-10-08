@@ -542,15 +542,17 @@ public:
           Body);
     Body = Body.ltrim('/');
     llvm::SmallString<16> Path(Body);
-    path::native(Path);
     fs::make_absolute(TestScheme::TestDir, Path);
+    path::native(Path);
     return std::string(Path);
   }
 
   llvm::Expected<URI>
   uriFromAbsolutePath(llvm::StringRef AbsolutePath) const override {
     llvm::StringRef Body = AbsolutePath;
-    if (!Body.consume_front(TestScheme::TestDir))
+    llvm::SmallString<16> NativeTestDir(TestDir);
+    llvm::sys::path::native(NativeTestDir);
+    if (!Body.consume_front(NativeTestDir))
       return error("Path {0} doesn't start with root {1}", AbsolutePath,
                    TestDir);
 

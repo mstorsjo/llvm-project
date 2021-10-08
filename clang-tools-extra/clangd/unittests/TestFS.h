@@ -75,7 +75,8 @@ private:
 };
 
 // Returns an absolute (fake) test directory for this OS.
-const char *testRoot();
+llvm::SmallString<16> testRootBuf();
+#define testRoot() testRootBuf().c_str()
 
 // Returns a suitable absolute path for this OS.
 std::string testPath(PathRef File,

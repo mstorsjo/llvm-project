@@ -133,8 +133,10 @@ TEST(URITest, ParseFailed) {
 
 TEST(URITest, Resolve) {
 #ifdef _WIN32
-  EXPECT_THAT(resolveOrDie(parseOrDie("file:///c%3a/x/y/z")), "c:\\x\\y\\z");
-  EXPECT_THAT(resolveOrDie(parseOrDie("file:///c:/x/y/z")), "c:\\x\\y\\z");
+  llvm::SmallString<16> Ref("c:\\x\\y\\z");
+  llvm::sys::path::native(Ref);
+  EXPECT_THAT(resolveOrDie(parseOrDie("file:///c%3a/x/y/z")), Ref);
+  EXPECT_THAT(resolveOrDie(parseOrDie("file:///c:/x/y/z")), Ref);
 #else
   EXPECT_EQ(resolveOrDie(parseOrDie("file:/a/b/c")), "/a/b/c");
   EXPECT_EQ(resolveOrDie(parseOrDie("file://auth/a/b/c")), "//auth/a/b/c");
@@ -148,13 +150,17 @@ TEST(URITest, Resolve) {
 
 TEST(URITest, ResolveUNC) {
 #ifdef _WIN32
+  llvm::SmallString<32> RefExample("\\\\example.com\\x\\y\\z");
+  llvm::sys::path::native(RefExample);
+  llvm::SmallString<16> RefLocalhost("\\\\127.0.0.1\\x\\y\\z");
+  llvm::sys::path::native(RefLocalhost);
   EXPECT_THAT(resolveOrDie(parseOrDie("file://example.com/x/y/z")),
-              "\\\\example.com\\x\\y\\z");
+              RefExample);
   EXPECT_THAT(resolveOrDie(parseOrDie("file://127.0.0.1/x/y/z")),
-              "\\\\127.0.0.1\\x\\y\\z");
+              RefLocalhost);
   // Ensure non-traditional file URI still resolves to correct UNC path.
   EXPECT_THAT(resolveOrDie(parseOrDie("file:////127.0.0.1/x/y/z")),
-              "\\\\127.0.0.1\\x\\y\\z");
+              RefLocalhost);
 #else
   EXPECT_THAT(resolveOrDie(parseOrDie("file://example.com/x/y/z")),
               "//example.com/x/y/z");

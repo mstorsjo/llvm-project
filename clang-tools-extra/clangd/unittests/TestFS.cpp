@@ -71,11 +71,14 @@ MockCompilationDatabase::getCompileCommand(PathRef File) const {
                                   FileName, std::move(CommandLine), "")};
 }
 
-const char *testRoot() {
+llvm::SmallString<16> testRootBuf() {
 #ifdef _WIN32
-  return "C:\\clangd-test";
+  llvm::SmallString<16> NativeRoot("C:\\clangd-test");
+  llvm::sys::path::native(NativeRoot);
+  return NativeRoot;
 #else
-  return "/clangd-test";
+  llvm::SmallString<16> Root("/clangd-test");
+  return Root;
 #endif
 }
 
