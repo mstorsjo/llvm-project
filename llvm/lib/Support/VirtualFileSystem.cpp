@@ -1202,6 +1202,10 @@ std::error_code RedirectingFileSystem::makeAbsolute(SmallVectorImpl<char> &Path)
   sys::path::Style style = sys::path::Style::windows;
   if (sys::path::is_absolute(WorkingDir.get(), sys::path::Style::posix)) {
     style = sys::path::Style::posix;
+  } else {
+    // Distinguish between windows_backslash and windows_slash
+    if (getExistingStyle(WorkingDir.get()) != sys::path::Style::windows_backslash)
+      style = sys::path::Style::windows_slash;
   }
 
   std::string Result = WorkingDir.get();
