@@ -1729,7 +1729,11 @@ static bool trySimplifyPath(SmallVectorImpl<StringRef> &Components,
     } else if (Cnt) {
       --Cnt;
     } else if (RealPathComponentIter != RealPathComponentEnd) {
-      if (Component != *RealPathComponentIter) {
+      if (Component.size() == 1 && RealPathComponentIter->size() == 1 &&
+          llvm::sys::path::is_separator(Component[0]) &&
+          llvm::sys::path::is_separator((*RealPathComponentIter)[0])) {
+        // Separators differing only in style, ignore.
+      } else if (Component != *RealPathComponentIter) {
         // If these path components differ by more than just case, then we
         // may be looking at symlinked paths. Bail on this diagnostic to avoid
         // noisy false positives.

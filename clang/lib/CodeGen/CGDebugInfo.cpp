@@ -433,7 +433,12 @@ CGDebugInfo::createFile(StringRef FileName,
     auto FileE = llvm::sys::path::end(RemappedFile);
     auto CurDirIt = llvm::sys::path::begin(CurDir);
     auto CurDirE = llvm::sys::path::end(CurDir);
-    for (; CurDirIt != CurDirE && *CurDirIt == *FileIt; ++CurDirIt, ++FileIt)
+    auto EqualOrSep = [](StringRef A, StringRef B) {
+      if (A == B)
+        return true;
+      return A.size() == 1 && B.size() == 1 && llvm::sys::path::is_separator(A[0]) && llvm::sys::path::is_separator(B[0]);
+    };
+    for (; CurDirIt != CurDirE && EqualOrSep(*CurDirIt, *FileIt); ++CurDirIt, ++FileIt)
       llvm::sys::path::append(DirBuf, *CurDirIt);
     if (std::distance(llvm::sys::path::begin(CurDir), CurDirIt) == 1) {
       // Don't strip the common prefix if it is only the root "/"
@@ -456,13 +461,11 @@ CGDebugInfo::createFile(StringRef FileName,
 }
 
 std::string CGDebugInfo::remapDIPath(StringRef Path) const {
-  if (DebugPrefixMap.empty())
-    return Path.str();
-
   SmallString<256> P = Path;
   for (const auto &Entry : DebugPrefixMap)
     if (llvm::sys::path::replace_path_prefix(P, Entry.first, Entry.second))
       break;
+  llvm::sys::path::make_preferred(P);
   return P.str().str();
 }
 
@@ -532,7 +535,7 @@ void CGDebugInfo::CreateCompileUnit() {
     // if the input file is a preprocessed source, use the module name for
     // debug info. The module name comes from the name specified in the first
     // linemarker if the input is a preprocessed source.
-    if (MainFile->getName() == MainFileName &&
+    if (llvm::sys::path::equals(MainFile->getName(), MainFileName) &&
         FrontendOptions::getInputKindForExtension(
             MainFile->getName().rsplit('.').second)
             .isPreprocessed())
@@ -2713,7 +2716,8 @@ llvm::DIModule *CGDebugInfo::getOrCreateModuleRef(ASTSourceDescriptor Mod,
   auto RemapPath = [this](StringRef Path) -> std::string {
     std::string Remapped = remapDIPath(Path);
     StringRef Relative(Remapped);
-    StringRef CompDir = TheCU->getDirectory();
+    SmallString<32> CompDir(TheCU->getDirectory());
+    llvm::sys::path::make_preferred(CompDir);
     if (Relative.consume_front(CompDir))
       Relative.consume_front(llvm::sys::path::get_separator());
 
