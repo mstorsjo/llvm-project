@@ -435,6 +435,28 @@ TEST(Support, AbsolutePathIteratorEnd) {
   }
 }
 
+TEST(Support, PathEquals) {
+  //                           A,            B,    Expected Win, Expected Posix
+  using TestTuple = std::tuple<const char *, const char *, bool, bool>;
+  std::vector<TestTuple> Tests;
+  Tests.emplace_back("", "", true, true);
+  Tests.emplace_back("a", "a", true, true);
+  Tests.emplace_back("a", "", false, false);
+  Tests.emplace_back("", "a", false, false);
+  Tests.emplace_back("AAA", "AA", false, false);
+  Tests.emplace_back("AA", "AAA", false, false);
+  Tests.emplace_back("c:/foo/bar", "c:\\FOO\\bar", true, false);
+  Tests.emplace_back("c:/foo\\BaR", "c:\\foo/bar", true, false);
+
+  for (auto &T : Tests) {
+    const char *A = std::get<0>(T);
+    const char *B = std::get<1>(T);
+    EXPECT_EQ(path::equals(A, B, path::Style::windows_backslash), std::get<2>(T));
+    EXPECT_EQ(path::equals(A, B, path::Style::windows_slash), std::get<2>(T));
+    EXPECT_EQ(path::equals(A, B, path::Style::posix), std::get<3>(T));
+  }
+}
+
 #ifdef _WIN32
 std::string getEnvWin(const wchar_t *Var) {
   std::string expected;

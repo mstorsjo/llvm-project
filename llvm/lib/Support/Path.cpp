@@ -515,6 +515,12 @@ static bool starts_with(StringRef Path, StringRef Prefix,
   return Path.startswith(Prefix);
 }
 
+bool equals(StringRef A, StringRef B, Style style) {
+  if (!starts_with(A, B, style))
+    return false;
+  return A.size() == B.size();
+}
+
 bool replace_path_prefix(SmallVectorImpl<char> &Path, StringRef OldPrefix,
                          StringRef NewPrefix, Style style) {
   if (OldPrefix.empty() && NewPrefix.empty())

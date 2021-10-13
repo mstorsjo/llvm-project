@@ -547,6 +547,15 @@ bool is_absolute_gnu(const Twine &path, Style style = Style::native);
 /// @result True if the path is relative, false if it is not.
 bool is_relative(const Twine &path, Style style = Style::native);
 
+/// Check if paths are equal under the path style's rules.
+/// For Windows paths, this allows differences in separator form and
+/// differences in case.
+///
+/// @param A The first path to compare.
+/// @param B The second path to compare.
+/// @result True if the paths are equal, false if they are not.
+bool equals(StringRef A, StringRef B, Style style = Style::native);
+
 } // end namespace path
 } // end namespace sys
 } // end namespace llvm
