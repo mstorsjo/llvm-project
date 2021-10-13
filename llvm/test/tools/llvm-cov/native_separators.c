@@ -4,6 +4,7 @@
 // in the index and source coverage reports, are native path. For example,
 // on Windows all '/' are converted to '\'.
 // REQUIRES: system-windows
+// XFAIL: system-windows
 
 // RUN: llvm-profdata merge %S/Inputs/double_dots.proftext -o %t.profdata
 // RUN: llvm-cov show %S/Inputs/native_separators.covmapping -instr-profile=%t.profdata -o %t.dir
