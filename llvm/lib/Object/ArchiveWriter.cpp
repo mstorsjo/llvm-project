@@ -530,6 +530,7 @@ namespace llvm {
 
 static ErrorOr<SmallString<128>> canonicalizePath(StringRef P) {
   SmallString<128> Ret = P;
+  sys::path::make_preferred(Ret);
   std::error_code Err = sys::fs::make_absolute(Ret);
   if (Err)
     return Err;
