@@ -1600,7 +1600,7 @@ def executeShTest(test, litConfig, useExternalSh,
     tmpDir, tmpBase = getTempPaths(test)
     substitutions = list(extra_substitutions)
     substitutions += getDefaultSubstitutions(test, tmpDir, tmpBase,
-                                             normalize_slashes=useExternalSh)
+                                             normalize_slashes=True)
     script = applySubstitutions(script, substitutions,
                                 recursion_limit=test.config.recursiveExpansionLimit)
 
