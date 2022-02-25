@@ -53,8 +53,17 @@ public:
         : Fw(refs) {}
 };
 
+class Fwf
+    : public std::moneypunct_byname<wchar_t, false>
+{
+public:
+    explicit Fwf(const std::string& nm, std::size_t refs = 0)
+        : std::moneypunct_byname<wchar_t, false>(nm, refs) {}
+};
+
 static std::wstring convert_thousands_sep(std::wstring const& in) {
-  return LocaleHelpers::convert_thousands_sep_fr_FR(in);
+  Fwf f(LOCALE_fr_FR_UTF_8, 1);
+  return LocaleHelpers::convert_thousands_sep(in, f.thousands_sep());
 }
 #endif // TEST_HAS_NO_WIDE_CHARACTERS
 

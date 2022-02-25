@@ -89,10 +89,10 @@ static void test_values() {
 #endif
   } else {
 #ifdef _WIN32
-    assert(stream_fr_FR_locale<CharT>(-1'000'000s) == SV("-1\u00A0000\u00A0000s"));
-    assert(stream_fr_FR_locale<CharT>(1'000'000s) == SV("1\u00A0000\u00A0000s"));
-    assert(stream_fr_FR_locale<CharT>(-1'000.123456s) == SV("-1\u00A0000,1235s"));
-    assert(stream_fr_FR_locale<CharT>(1'000.123456s) == SV("1\u00A0000,1235s"));
+    assert(stream_fr_FR_locale<CharT>(-1'000'000s) == SV("-1\u202F000\u202F000s"));
+    assert(stream_fr_FR_locale<CharT>(1'000'000s) == SV("1\u202F000\u202F000s"));
+    assert(stream_fr_FR_locale<CharT>(-1'000.123456s) == SV("-1\u202F000,1235s"));
+    assert(stream_fr_FR_locale<CharT>(1'000.123456s) == SV("1\u202F000,1235s"));
 #elif defined(__APPLE__)
     assert(stream_fr_FR_locale<CharT>(-1'000'000s) == SV("-1000000s"));
     assert(stream_fr_FR_locale<CharT>(1'000'000s) == SV("1000000s"));

@@ -115,7 +115,7 @@ int main(int, char**)
 #if defined(_CS_GNU_LIBC_VERSION)
     const wchar_t fr_sep = glibc_version_less_than("2.27") ? L' ' : L'\u202F';
 #elif defined(_WIN32)
-    const wchar_t fr_sep = L'\u00A0';
+    const wchar_t fr_sep = L'\u202F';
 #elif defined(_AIX)
     const wchar_t fr_sep = L'\u202F';
 #else
