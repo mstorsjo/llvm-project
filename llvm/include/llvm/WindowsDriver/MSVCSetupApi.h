@@ -364,6 +364,9 @@ struct DECLSPEC_UUID("42843719-DB4C-46C2-8E7C-64F1816EFD5B")
   STDMETHOD(GetInstanceForPath)
   (_In_z_ LPCWSTR wzPath, _Out_ ISetupInstance **ppInstance) = 0;
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(ISetupConfiguration, 0x42843719, 0xDB4C, 0x46C2, 0x8E, 0x7C, 0x64, 0xF1, 0x81, 0x6E, 0xFD, 0x5B)
+#endif
 #endif
 
 EXTERN_C const IID IID_ISetupConfiguration2;
@@ -382,6 +385,9 @@ struct DECLSPEC_UUID("26AAB78C-4A60-49D6-AF3B-3C35BC93365D")
   /// <returns>Standard HRESULT indicating success or failure.</returns>
   STDMETHOD(EnumAllInstances)(_Out_ IEnumSetupInstances **ppEnumInstances) = 0;
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(ISetupConfiguration2, 0x26AAB78C, 0x4A60, 0x49D6, 0xAF, 0x3B, 0x3C, 0x35, 0xBC, 0x93, 0x36, 0x5D)
+#endif
 #endif
 
 EXTERN_C const IID IID_ISetupPackageReference;
@@ -486,6 +492,9 @@ struct DECLSPEC_UUID("42b21b78-6192-463e-87bf-d577838f1d5c")
   (_In_ LPCOLESTR pwszVersionRange, _Out_ PULONGLONG pullMinVersion,
    _Out_ PULONGLONG pullMaxVersion) = 0;
 };
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(ISetupHelper, 0x42b21b78, 0x6192, 0x463e, 0x87, 0xbf, 0xd5, 0x77, 0x83, 0x8f, 0x1d, 0x5c)
+#endif
 #endif
 
 // Class declarations
@@ -498,6 +507,9 @@ EXTERN_C const CLSID CLSID_SetupConfiguration;
 /// cref="ISetupConfiguration2"/>, and <see cref="ISetupHelper"/>.
 /// </summary>
 class DECLSPEC_UUID("177F0C4A-1CD3-4DE7-A32C-71DBBB9FA36D") SetupConfiguration;
+#ifdef __CRT_UUID_DECL
+__CRT_UUID_DECL(SetupConfiguration, 0x177F0C4A, 0x1CD3, 0x4DE7, 0xA3, 0x2C, 0x71, 0xDB, 0xBB, 0x9F, 0xA3, 0x6D)
+#endif
 #endif
 
 // Function declarations

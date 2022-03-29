@@ -35,11 +35,6 @@
 #define NOMINMAX
 #endif
 #include <windows.h>
-#endif
-
-#ifdef _MSC_VER
-// Don't support SetupApi on MinGW.
-#define USE_MSVC_SETUP_API
 
 // Make sure this comes before MSVCSetupApi.h
 #include <comdef.h>
@@ -636,7 +631,7 @@ bool llvm::findVCToolChainViaEnvironment(vfs::FileSystem &VFS,
 bool llvm::findVCToolChainViaSetupConfig(
     vfs::FileSystem &VFS, std::optional<StringRef> VCToolsVersion,
     std::string &Path, ToolsetLayout &VSLayout) {
-#if !defined(USE_MSVC_SETUP_API)
+#if !defined(_WIN32)
   return false;
 #else
   // FIXME: This really should be done once in the top-level program's main
