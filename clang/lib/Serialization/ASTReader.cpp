@@ -653,11 +653,7 @@ static bool checkPreprocessorOptions(const PreprocessorOptions &PPOpts,
     // Check whether we know anything about this macro name or not.
     llvm::StringMap<std::pair<StringRef, bool /*IsUndef*/>>::iterator Known =
         ASTFileMacros.find(MacroName);
-    if (!Validate || Known == ASTFileMacros.end()) {
-      // FIXME: Check whether this identifier was referenced anywhere in the
-      // AST file. If so, we should reject the AST file. Unfortunately, this
-      // information isn't in the control block. What shall we do about it?
-
+    if (!Validate) {
       if (Existing.second) {
         SuggestedPredefines += "#undef ";
         SuggestedPredefines += MacroName.str();
@@ -670,6 +666,13 @@ static bool checkPreprocessorOptions(const PreprocessorOptions &PPOpts,
         SuggestedPredefines += '\n';
       }
       continue;
+    }
+    if (Known == ASTFileMacros.end()) {
+      if (Diags) {
+        Diags->Report(diag::err_pch_macro_def_undef)
+            << MacroName << Known->second.second;
+      }
+      return true;
     }
 
     // If the macro was defined in one but undef'd in the other, we have a
@@ -684,13 +687,21 @@ static bool checkPreprocessorOptions(const PreprocessorOptions &PPOpts,
 
     // If the macro was #undef'd in both, or if the macro bodies are identical,
     // it's fine.
-    if (Existing.second || Existing.first == Known->second.first)
+    if (Existing.second || Existing.first == Known->second.first) {
+      ASTFileMacros.erase(Known);
       continue;
+    }
 
     // The macro bodies differ; complain.
     if (Diags) {
       Diags->Report(diag::err_pch_macro_def_conflict)
         << MacroName << Known->second.first << Existing.first;
+    }
+    return true;
+  }
+  for (const auto &MacroName : ASTFileMacros.keys()) {
+    if (Diags) {
+      Diags->Report(diag::err_pch_macro_def_undef) << MacroName << true;
     }
     return true;
   }
@@ -5172,7 +5183,7 @@ namespace {
     bool ReadPreprocessorOptions(const PreprocessorOptions &PPOpts,
                                  bool Complain,
                                  std::string &SuggestedPredefines) override {
-      return checkPreprocessorOptions(ExistingPPOpts, PPOpts, nullptr, FileMgr,
+      return checkPreprocessorOptions(PPOpts, ExistingPPOpts, nullptr, FileMgr,
                                       SuggestedPredefines, ExistingLangOpts);
     }
   };
