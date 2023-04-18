@@ -212,6 +212,11 @@ __libunwind_seh_personality(int version, _Unwind_Action state,
   ms_exc.ExceptionInformation[2] = state;
   DISPATCHER_CONTEXT *disp_ctx =
       __unw_seh_get_disp_ctx((unw_cursor_t *)context);
+#if defined(__aarch64__)
+  disp_ctx->NonVolatileRegisters = (PBYTE)&disp_ctx->ContextRecord->X19;
+#elif defined(__arm__)
+  disp_ctx->NonVolatileRegisters = (PBYTE)&disp_ctx->ContextRecord->R4;
+#endif
   _LIBUNWIND_TRACE_UNWINDING("__libunwind_seh_personality() calling "
                              "LanguageHandler %p(%p, %p, %p, %p)",
                              (void *)disp_ctx->LanguageHandler, (void *)&ms_exc,
