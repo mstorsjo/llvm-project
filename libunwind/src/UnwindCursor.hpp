@@ -83,6 +83,19 @@ struct UNWIND_INFO {
   uint16_t UnwindCodes[2];
 };
 
+union UNWIND_INFO_ARM {
+  DWORD HeaderData;
+  struct {
+    DWORD FunctionLength : 18;
+    DWORD Version : 2;
+    DWORD ExceptionDataPresent : 1;
+    DWORD EpilogInHeader : 1;
+    DWORD FunctionFragment : 1;
+    DWORD EpilogCount : 5;
+    DWORD CodeWords : 4;
+  } s;
+};
+
 extern "C" _Unwind_Reason_Code __libunwind_seh_personality(
     int, _Unwind_Action, uint64_t, _Unwind_Exception *,
     struct _Unwind_Context *);
@@ -2045,6 +2058,51 @@ bool UnwindCursor<A, R>::getInfoFromSEH(pint_t pc) {
           offset++;
         }
         if (!xdata->EpilogInHeader)
+          offset += epilogScopes;
+        offset += codeWords;
+        uint32_t *exceptionHandlerInfo =
+            reinterpret_cast<uint32_t *>(xdata) + offset;
+        _dispContext.HandlerData = &exceptionHandlerInfo[1];
+        _dispContext.LanguageHandler = reinterpret_cast<EXCEPTION_ROUTINE *>(
+            base + exceptionHandlerInfo[0]);
+        _info.lsda = reinterpret_cast<unw_word_t>(_dispContext.HandlerData);
+        if (_dispContext.LanguageHandler)
+          _info.handler =
+              reinterpret_cast<unw_word_t>(__libunwind_seh_personality);
+        else
+          _info.handler = 0;
+      } else {
+        _info.lsda = 0;
+        _info.handler = 0;
+      }
+    }
+  }
+#elif defined(_LIBUNWIND_TARGET_ARM)
+  if (unwindEntry->Flag != 0) { // Packed unwind info
+    _info.end_ip = _info.start_ip + unwindEntry->FunctionLength * 2;
+    // Only fill in the handler and LSDA if they're stale.
+    if (pc != getLastPC()) {
+      // Packed unwind info doesn't have an exception handler.
+      _info.lsda = 0;
+      _info.handler = 0;
+    }
+  } else {
+    UNWIND_INFO_ARM *xdata =
+        reinterpret_cast<UNWIND_INFO_ARM *>(base + unwindEntry->UnwindData);
+    _info.end_ip = _info.start_ip + xdata->s.FunctionLength * 2;
+    // Only fill in the handler and LSDA if they're stale.
+    if (pc != getLastPC()) {
+      if (xdata->s.ExceptionDataPresent) {
+        uint32_t offset = 1; // The main xdata
+        uint32_t codeWords = xdata->s.CodeWords;
+        uint32_t epilogScopes = xdata->s.EpilogCount;
+        if (xdata->s.EpilogCount == 0 && xdata->s.CodeWords == 0) {
+          uint32_t extensionWord = reinterpret_cast<uint32_t *>(xdata)[1];
+          codeWords = (extensionWord >> 16) & 0xff;
+          epilogScopes = extensionWord & 0xffff;
+          offset++;
+        }
+        if (!xdata->s.EpilogInHeader)
           offset += epilogScopes;
         offset += codeWords;
         uint32_t *exceptionHandlerInfo =
