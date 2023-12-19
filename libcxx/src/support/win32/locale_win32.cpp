@@ -90,11 +90,15 @@ int snprintf_l(char* ret, size_t n, locale_t loc, const char* format, ...) {
   int result = __stdio_common_vsprintf(
       _CRT_INTERNAL_LOCAL_PRINTF_OPTIONS | _CRT_INTERNAL_PRINTF_STANDARD_SNPRINTF_BEHAVIOR, ret, n, format, loc, ap);
 #else
-  __libcpp_locale_guard __current(loc);
-  _LIBCPP_DIAGNOSTIC_PUSH
-  _LIBCPP_CLANG_DIAGNOSTIC_IGNORED("-Wformat-nonliteral")
-  int result = vsnprintf(ret, n, format, ap);
-  _LIBCPP_DIAGNOSTIC_POP
+  int result;
+  if (n != 0) {
+    va_list ap_copy;
+    va_copy(ap_copy, ap);
+    result = _vsnprintf_s_l(ret, n, _TRUNCATE, format, loc, ap_copy);
+    va_end(ap_copy);
+  }
+  if (n == 0 || result < 0)
+    result = _vscprintf_l(format, loc, ap);
 #endif
   va_end(ap);
   return result;
