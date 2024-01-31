@@ -1,0 +1,196 @@
+name: Run tests on Windows
+on:
+  push:
+
+jobs:
+  compiler-rt:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x86_64
+          - i686
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-${{matrix.arch}}.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Configure Git core.autocrlf
+        run: |
+          git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Build test executables
+        run: |
+          mkdir build-tools
+          cd build-tools
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++
+          ninja not FileCheck llvm-config KillTheDoctor count split-file
+          echo "LLVM_CONFIG=$PWD\bin\llvm-config.exe" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CMAKE_DIR=$PWD\lib\cmake\llvm" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Build and test compiler-rt
+        # Skipping libfuzzer; all tests fail since the clang mingw driver
+        # doesn't support -fsanitize=fuzzer.
+        # Skipping ORC; the tests rely on llvm-jitlink being available,
+        # which requires building a large part of LLVM among the test
+        # tools above, and jitlink requires an MSVC toolchain to be available.
+        run: |
+          mkdir build-compiler-rt
+          cd build-compiler-rt
+          cmake ../compiler-rt `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++ `
+            -DCMAKE_C_COMPILER_TARGET=${{matrix.arch}}-w64-windows-gnu `
+            -DCOMPILER_RT_DEFAULT_TARGET_ONLY=TRUE `
+            -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE `
+            -DLLVM_CONFIG_PATH="$Env:LLVM_CONFIG" `
+            -DLLVM_CMAKE_DIR="$Env:CMAKE_DIR" `
+            -DSANITIZER_CXX_ABI=libc++ `
+            -DCOMPILER_RT_INCLUDE_TESTS=ON `
+            -DCOMPILER_RT_BUILD_LIBFUZZER=OFF `
+            -DCOMPILER_RT_BUILD_ORC=OFF `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          ninja
+          ninja check-compiler-rt
+
+  openmp:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: i686, asmflag: }
+          - { arch: x86_64, asmflag: -m64 }
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+      - uses: actions/checkout@v4
+      # This doesn't rebuild Clang, and assumes that it is a version close
+      # to the current version of OpenMP.
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-${{matrix.arch}}.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build test executables
+        run: |
+          mkdir build-tools
+          cd build-tools
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++ `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          ninja not FileCheck
+          echo "LLVM_TOOLS=$PWD\bin" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Build and test OpenMP
+        run: |
+          cd openmp
+          mkdir build
+          cd build
+          cmake .. `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DOPENMP_LLVM_TOOLS_DIR="$Env:LLVM_TOOLS" `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++ `
+            -DCMAKE_ASM_MASM_COMPILER=llvm-ml `
+            -DLIBOMP_ASMFLAGS=${{matrix.asmflag}}
+          ninja check-openmp
+
+  libcxx:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x86_64, prefix: i686-w64-mingw32- }
+          - { arch: x86_64, prefix: }
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+      - uses: actions/checkout@v4
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-${{matrix.arch}}.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build and test libcxx
+        run: |
+          mkdir build
+          cd build
+          cmake ../runtimes `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLIBCXX_ENABLE_WERROR=YES `
+            -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" `
+            -DLIBCXX_CXX_ABI=libcxxabi `
+            -DCMAKE_C_COMPILER=${{matrix.prefix}}clang `
+            -DCMAKE_CXX_COMPILER=${{matrix.prefix}}clang++ `
+            -DLIBCXXABI_ENABLE_SHARED=NO `
+            -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=YES `
+            -DLIBCXX_USE_COMPILER_RT=YES `
+            -DLIBCXXABI_USE_COMPILER_RT=YES `
+            -DLIBUNWIND_USE_COMPILER_RT=YES `
+            -DLIBCXXABI_USE_LLVM_UNWINDER=YES `
+            -DLIBCXX_EXTRA_SITE_DEFINES="__USE_MINGW_ANSI_STDIO=1" `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          ninja
+          ninja check-cxx check-cxxabi check-unwind
+
+  llvm:
+    runs-on: windows-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+      - name: Configure Git core.autocrlf
+        run: |
+          git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-x86_64.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build the project and unittests
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DLLVM_ENABLE_PROJECTS="clang;lld;clang-tools-extra" `
+            -DLLVM_WINDOWS_PREFER_FORWARD_SLASH=OFF `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++ `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          ninja test-depends
+      - name: Run tests
+        run: |
+          cd build
+          ninja check
