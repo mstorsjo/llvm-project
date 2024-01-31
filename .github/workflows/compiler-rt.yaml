@@ -1,0 +1,67 @@
+name: Run compiler-rt tests
+on:
+  push:
+
+jobs:
+  llvm-mingw:
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x86_64
+          - i686
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-${{matrix.arch}}.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Configure Git core.autocrlf
+        run: |
+          git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Build test executables
+        run: |
+          mkdir build-tools
+          cd build-tools
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++
+          ninja not FileCheck llvm-config KillTheDoctor count split-file
+          echo "LLVM_CONFIG=$PWD\bin\llvm-config.exe" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "CMAKE_DIR=$PWD\lib\cmake\llvm" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Build and test compiler-rt
+        # Skipping libfuzzer; all tests fail since the clang mingw driver
+        # doesn't support -fsanitize=fuzzer.
+        # Skipping ORC; the tests rely on llvm-jitlink being available,
+        # which requires building a large part of LLVM among the test
+        # tools above, and jitlink requires an MSVC toolchain to be available.
+        run: |
+          mkdir build-compiler-rt
+          cd build-compiler-rt
+          cmake ../compiler-rt `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++ `
+            -DCMAKE_C_COMPILER_TARGET=${{matrix.arch}}-w64-windows-gnu `
+            -DCOMPILER_RT_DEFAULT_TARGET_ONLY=TRUE `
+            -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE `
+            -DLLVM_CONFIG_PATH="$Env:LLVM_CONFIG" `
+            -DLLVM_CMAKE_DIR="$Env:CMAKE_DIR" `
+            -DSANITIZER_CXX_ABI=libc++ `
+            -DCOMPILER_RT_INCLUDE_TESTS=ON `
+            -DCOMPILER_RT_BUILD_LIBFUZZER=OFF `
+            -DCOMPILER_RT_BUILD_ORC=OFF `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          ninja
+          ninja check-compiler-rt
