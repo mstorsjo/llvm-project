@@ -1,0 +1,39 @@
+name: Run LLDB tests on Windows
+on:
+  push:
+
+jobs:
+  msvc:
+    runs-on: windows-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+          pip install psutil
+      - uses: actions/checkout@v4
+      - name: Set up the MSVC dev environment
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 1000M
+          key: msvc
+          variant: sccache
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DLLVM_ENABLE_PROJECTS="clang;lld;lldb" `
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
+            -DPython3_FIND_REGISTRY=NEVER `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          ninja
+      - name: Run tests
+        run: |
+          cd build
+          ninja check-lldb
