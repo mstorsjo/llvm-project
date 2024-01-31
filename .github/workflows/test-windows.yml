@@ -1,0 +1,56 @@
+name: Run tests on Windows
+on:
+  push:
+
+jobs:
+  llvm:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch:
+          - x86_64
+          - aarch64
+    runs-on: ${{startsWith(matrix.arch, 'a') && 'windows-11-arm' || 'windows-latest'}}
+    steps:
+      - name: Configure Git core.autocrlf
+        run: |
+          git config --global core.autocrlf false
+      - uses: actions/checkout@v6
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250910/llvm-mingw-20250910-ucrt-${{matrix.arch}}.zip
+          7z x llvm-mingw*.zip
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1.2.23
+        with:
+          max-size: 1000M
+          key: llvm-test-win-${{matrix.arch}}
+      - name: Configure the build
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD="ARM;AArch64;X86" `
+            -DLLVM_ENABLE_PROJECTS="clang;lld;clang-tools-extra" `
+            -DLLVM_WINDOWS_PREFER_FORWARD_SLASH=OFF `
+            -DCLANG_ENABLE_CIR=OFF `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++ `
+            -DCMAKE_CXX_FLAGS="-D__USE_MINGW_ANSI_STDIO=${{startsWith(matrix.arch, 'a') && '0' || '1'}}" `
+            -DLLVM_CCACHE_BUILD=ON `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+      - name: Build the project and unittests
+        run: |
+          cd build
+          ninja test-depends
+          cp c:\llvm-mingw\bin\libc++.dll bin
+          cp c:\llvm-mingw\bin\libunwind.dll bin
+      - name: Run tests
+        run: |
+          cd build
+          ninja check
