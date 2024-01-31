@@ -1,0 +1,40 @@
+name: Run tests on Windows
+on:
+  push:
+
+jobs:
+  llvm:
+    runs-on: windows-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+      - name: Configure Git core.autocrlf
+        run: |
+          git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-x86_64.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Build the project and unittests
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DLLVM_ENABLE_PROJECTS="clang;lld;clang-tools-extra" `
+            -DLLVM_WINDOWS_PREFER_FORWARD_SLASH=OFF `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++ `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          ninja test-depends
+      - name: Run tests
+        run: |
+          cd build
+          ninja check
