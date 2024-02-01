@@ -23,6 +23,12 @@ jobs:
           pip install psutil
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 2G
+          key: clangcl
+          variant: sccache
       - name: Build
         run: |
           mkdir build
@@ -33,6 +39,8 @@ jobs:
             -DLLVM_ENABLE_PROJECTS="clang;lld;clang-tools-extra" `
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl `
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
             -DPython3_FIND_REGISTRY=LAST `
             -DLLVM_LIT_ARGS="-v --time-tests"
           # --timeout=1500
