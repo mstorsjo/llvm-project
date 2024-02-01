@@ -1,0 +1,43 @@
+name: Build and Test on Windows
+on:
+  push:
+    paths:
+      - '.github/workflows/windows-test.yaml'
+  pull_request:
+    paths:
+      - '.github/workflows/windows-test.yaml'
+
+permissions:
+  contents: read # Default everything to read-only
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          pip install psutil
+      - name: Set up the MSVC dev environment
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_ENABLE_PROJECTS="clang;lld;clang-tools-extra" `
+            -DCMAKE_C_COMPILER=clang-cl `
+            -DCMAKE_CXX_COMPILER=clang-cl `
+            -DPython3_FIND_REGISTRY=LAST `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          # --timeout=1500
+          ninja test-depends
+      - name: Run tests
+        run: |
+          cd build
+          ninja check
