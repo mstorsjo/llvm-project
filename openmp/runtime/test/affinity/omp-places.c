@@ -1,7 +1,7 @@
 // RUN: %libomp-compile -D_GNU_SOURCE
-// RUN: env OMP_PLACES=threads %libomp-run
-// RUN: env OMP_PLACES=cores %libomp-run
-// RUN: env OMP_PLACES=sockets %libomp-run
+// RUN: env OMP_PLACES=threads KMP_TOPOLOGY_METHOD=cpuinfo %libomp-run
+// RUN: env OMP_PLACES=cores KMP_TOPOLOGY_METHOD=cpuinfo %libomp-run
+// RUN: env OMP_PLACES=sockets KMP_TOPOLOGY_METHOD=cpuinfo %libomp-run
 // REQUIRES: linux
 
 #include <stdio.h>
