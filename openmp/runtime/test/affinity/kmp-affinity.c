@@ -1,7 +1,7 @@
 // RUN: %libomp-compile -D_GNU_SOURCE
-// RUN: env KMP_AFFINITY=granularity=thread,compact %libomp-run
-// RUN: env KMP_AFFINITY=granularity=core,compact %libomp-run
-// RUN: env KMP_AFFINITY=granularity=socket,compact %libomp-run
+// RUN: env KMP_AFFINITY=granularity=thread,compact KMP_TOPOLOGY_METHOD=cpuinfo %libomp-run
+// RUN: env KMP_AFFINITY=granularity=core,compact KMP_TOPOLOGY_METHOD=cpuinfo %libomp-run
+// RUN: env KMP_AFFINITY=granularity=socket,compact KMP_TOPOLOGY_METHOD=cpuinfo %libomp-run
 // REQUIRES: linux
 
 #include <stdio.h>
