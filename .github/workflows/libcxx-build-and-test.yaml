@@ -14,6 +14,7 @@
 #
 name: Build and Test libc++
 on:
+  push:
   pull_request:
     paths:
       - 'libcxx/**'
@@ -201,7 +202,6 @@ jobs:
             **/crash_diagnostics/*
   windows:
     runs-on: windows-2022
-    needs: [ stage1 ]
     strategy:
       fail-fast: false
       matrix:
@@ -223,11 +223,11 @@ jobs:
       - name: Install a current LLVM
         if: ${{ matrix.mingw != true }}
         run: |
-          choco install -y llvm --version=17.0.6
+          choco install -y llvm --version=18.1.0
       - name: Install llvm-mingw
         if: ${{ matrix.mingw == true }}
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20231128/llvm-mingw-20231128-ucrt-x86_64.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240308/llvm-mingw-20240308-ucrt-x86_64.zip
           powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
