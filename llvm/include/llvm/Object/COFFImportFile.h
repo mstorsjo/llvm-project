@@ -138,7 +138,8 @@ struct COFFShortExport {
 Error writeImportLibrary(
     StringRef ImportName, StringRef Path, ArrayRef<COFFShortExport> Exports,
     COFF::MachineTypes Machine, bool MinGW,
-    ArrayRef<COFFShortExport> NativeExports = std::nullopt);
+    ArrayRef<COFFShortExport> NativeExports = std::nullopt,
+    bool AddUnderscores = true);
 
 } // namespace object
 } // namespace llvm
