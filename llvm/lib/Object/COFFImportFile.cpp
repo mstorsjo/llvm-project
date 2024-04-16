@@ -12,6 +12,7 @@
 
 #include "llvm/Object/COFFImportFile.h"
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/StringSet.h"
 #include "llvm/ADT/Twine.h"
 #include "llvm/Object/Archive.h"
 #include "llvm/Object/ArchiveWriter.h"
@@ -657,8 +658,7 @@ NewArchiveMember ObjectFactory::createWeakExternal(StringRef Sym,
 Error writeImportLibrary(StringRef ImportName, StringRef Path,
                          ArrayRef<COFFShortExport> Exports,
                          MachineTypes Machine, bool MinGW,
-                         ArrayRef<COFFShortExport> NativeExports,
-                         bool AddUnderscores) {
+                         ArrayRef<COFFShortExport> NativeExports) {
 
   MachineTypes NativeMachine = Machine;
   if (isArm64EC(Machine)) {
@@ -680,6 +680,8 @@ Error writeImportLibrary(StringRef ImportName, StringRef Path,
 
   auto addExports = [&](ArrayRef<COFFShortExport> Exp,
                         MachineTypes M) -> Error {
+    StringSet<> Symbols;
+    StringSet<> AliasTargets;
     for (const COFFShortExport &E : Exp) {
       if (E.Private)
         continue;
@@ -721,13 +723,14 @@ Error writeImportLibrary(StringRef ImportName, StringRef Path,
           NameType = IMPORT_NAME;
         else {
           StringRef Prefix = "";
-          if (Machine == IMAGE_FILE_MACHINE_I386 && AddUnderscores)
+          if (Machine == IMAGE_FILE_MACHINE_I386)
             Prefix = "_";
 
           Members.push_back(OF.createWeakExternal((Prefix + E.ImportName).str(),
                                                   Name, false, M));
           Members.push_back(OF.createWeakExternal((Prefix + E.ImportName).str(),
                                                   Name, true, M));
+          AliasTargets.insert((Prefix + E.ImportName).str());
           continue;
         }
       } else {
@@ -749,8 +752,23 @@ Error writeImportLibrary(StringRef ImportName, StringRef Path,
         }
       }
 
+      Symbols.insert(Name);
       Members.push_back(OF.createShortImport(Name, E.Ordinal, ImportType,
                                              NameType, ExportName, M));
+    }
+    if (MinGW) {
+      // If we created aliases, with no regular import object for the target,
+      // create import objects that the aliases can resolve to.
+      for (const auto &I : AliasTargets) {
+        if (Symbols.contains(I.first()))
+          continue;
+        ImportNameType NameType =
+            M == IMAGE_FILE_MACHINE_I386 ? IMPORT_NAME_NOPREFIX : IMPORT_NAME;
+        // TODO: Don't assume IMPORT_CODE
+        Members.push_back(OF.createShortImport(I.first(), /*Ordinal=*/false,
+                                               IMPORT_CODE, NameType,
+                                               /*ExportName=*/"", M));
+      }
     }
     return Error::success();
   };

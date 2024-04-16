@@ -17,5 +17,11 @@ DecoratedFunction@4
 ; CHECK-NEXT: Symbol: __imp_DecoratedFunction@4
 ; CHECK-NEXT: Symbol: DecoratedFunction@4
 
+;; This import entry is created to support the alias.
+; CHECK:      Name type: noprefix
+; CHECK-NEXT: Export name: func
+; CHECK-NEXT: Symbol: __imp__func
+; CHECK-NEXT: Symbol: _func
+
+; CHECK-NM: U _func
 ; CHECK-NM: W alias
-; CHECK-NM: U func

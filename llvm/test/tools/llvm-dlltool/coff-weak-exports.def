@@ -29,6 +29,12 @@ ImpLibName3 = kernel32.Sleep
 ; CHECK:      T ImpLibName3
 ; CHECK-NEXT: T __imp_ImpLibName3
 
+;; These import entries are created to fulfill the aliases above.
+; CHECK:      T AltTestFunction2
+; CHECK-NEXT: T __imp_AltTestFunction2
+; CHECK:      T AltTestFunction
+; CHECK-NEXT: T __imp_AltTestFunction
+
 ; ARCH-NOT: unknown arch
 
 ; SYMBOLS:        Symbol {
