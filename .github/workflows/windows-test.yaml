@@ -1,11 +1,6 @@
 name: Build and Test on Windows
 on:
   push:
-    paths:
-      - '.github/workflows/windows-test.yaml'
-  pull_request:
-    paths:
-      - '.github/workflows/windows-test.yaml'
 
 permissions:
   contents: read # Default everything to read-only
