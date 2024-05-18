@@ -11,7 +11,7 @@ permissions:
   contents: read # Default everything to read-only
 
 jobs:
-  windows:
+  msvc:
     runs-on: windows-2022
     steps:
       - name: Set git to use LF
@@ -44,6 +44,50 @@ jobs:
             -DPython3_FIND_REGISTRY=LAST `
             -DLLVM_LIT_ARGS="-v --time-tests"
           # --timeout=1500
+          ninja test-depends
+      - name: Run tests
+        run: |
+          cd build
+          ninja check
+
+  mingw:
+    runs-on: windows-2022
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          choco install ninja
+      - name: Install toolchain
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240502/llvm-mingw-20240502-ucrt-x86_64.zip
+          Expand-Archive llvm-mingw-*.zip -DestinationPath .
+          del llvm-mingw-*.zip
+          mv llvm-mingw-* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+          echo "c:\llvm-mingw\python\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+          echo "PYTHON_EXE=c:/llvm-mingw/python/bin/python3.exe" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 2G
+          key: mingw
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_ENABLE_PROJECTS="clang;lld;clang-tools-extra" `
+            -DLLVM_WINDOWS_PREFER_FORWARD_SLASH=OFF `
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++ `
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache `
+            -DLLVM_LIT_ARGS="-v --time-tests"
           ninja test-depends
       - name: Run tests
         run: |
