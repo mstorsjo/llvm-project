@@ -726,6 +726,39 @@ void toolchains::MinGW::addClangTargetOptions(
     }
   }
 
+  // Default to not enabling sized deallocation, but let user provided options
+  // override it.
+  //
+  // If using sized deallocation, user code that invokes delete will end up
+  // calling delete(void*,size_t). If the user wanted to override the
+  // operator delete(void*), there may be a fallback operator delete(void*,size_t)
+  // which calls the regular operator delete(void*).
+  //
+  // However, if the C++ standard library is linked in the form of a DLL,
+  // and the fallback operator delete(void*,size_t) is within this DLL (which is
+  // the case for libc++ at least, probably also for libstdc++) it will only redirect
+  // towards the library's default operator delete(void*), not towards the user's
+  // provided operator delete(void*).
+  //
+  // This may come as a surprise for user code that overrides these operators.
+  // Therefore, default to not using sized deallocation, for now.
+  //
+  // The user can work around the issue by providing a fallback operator
+  // delete(void*,size_t) in their own code though.
+  //
+  // In the case of MS STL, the fallback operators are provided in object files that
+  // are statically linked into user executables, even if linking against a DLL form
+  // of the library. That makes the right user overridden operators to be called,
+  // when calling a more specialized version of an operator, but overriding a more
+  // generic version.
+  //
+  // I.e., this is essentially a workaround for the fact that fallbacks
+  // between overridden operators doesn't work as expected when using
+  // libc++/libstdc++ in the form of a DLL.
+  if (!DriverArgs.hasArgNoClaim(options::OPT_fsized_deallocation,
+                                options::OPT_fno_sized_deallocation))
+    CC1Args.push_back("-fno-sized-deallocation");
+
   CC1Args.push_back("-fno-use-init-array");
 
   for (auto Opt : {options::OPT_mthreads, options::OPT_mwindows,

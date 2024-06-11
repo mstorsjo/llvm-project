@@ -76,7 +76,11 @@ TEST(CXXDeallocatorCall, SimpleDestructor) {
     }
   )",
                                                          Diags));
+#ifdef __MINGW32__
+  EXPECT_EQ(Diags, "test.CXXDeallocator: NumArgs: 1\n");
+#else
   EXPECT_EQ(Diags, "test.CXXDeallocator: NumArgs: 2\n");
+#endif
 }
 
 } // namespace
