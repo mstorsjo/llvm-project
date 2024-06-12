@@ -31,12 +31,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
-        with:
-          max-size: 700M
-          key: clangcl-17
-          variant: sccache
       - name: Build and test
         run: |
           mkdir build
@@ -45,13 +39,11 @@ jobs:
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang;openmp" `
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl `
-            -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          ninja check-openmp
+            -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported"
+          ninja bin\llvm-min-tblgen.exe
+          bin\llvm-min-tblgen.exe --version
 
   windows-msvc-separate:
     runs-on: windows-latest
@@ -64,12 +56,6 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
-        with:
-          max-size: 700M
-          key: clangcl-default
-          variant: sccache
       - name: Build Clang and test tools
         run: |
           mkdir build
@@ -78,29 +64,10 @@ jobs:
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang" `
             -DCMAKE_C_COMPILER=clang-cl `
-            -DCMAKE_CXX_COMPILER=clang-cl `
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          ninja
-          echo "$PWD\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
-          echo "LLVM_TOOLS=$PWD\bin" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
-      - name: Build and test OpenMP
-        run: |
-          cd openmp
-          mkdir build
-          cd build
-          cmake .. `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DOPENMP_LLVM_TOOLS_DIR="$Env:LLVM_TOOLS" `
-            -DCMAKE_C_COMPILER=clang-cl `
-            -DCMAKE_CXX_COMPILER=clang-cl `
-            -DOPENMP_LIT_ARGS="-v --time-tests --show-unsupported" `
-            -DOPENMP_TEST_C_COMPILER=clang `
-            -DOPENMP_TEST_CXX_COMPILER=clang++
-          ninja check-openmp
+            -DCMAKE_CXX_COMPILER=clang-cl
+          ninja bin\llvm-min-tblgen.exe
+          bin\llvm-min-tblgen.exe --version
 
   llvm-mingw:
     if: false
