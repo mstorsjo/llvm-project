@@ -28,6 +28,12 @@ jobs:
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl
           ninja bin\llvm-min-tblgen.exe
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240606/llvm-mingw-20240606-ucrt-x86_64.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
       - name: Inspect
         shell: cmd
         run: |
@@ -38,7 +44,7 @@ jobs:
           where MSVCP140.dll
           where VCRUNTIME140.dll
           where VCRUNTIME140_1.dll
-          bin\llvm-min-tblgen.exe --version
+          c:\llvm-mingw\bin\lldb -b -s ../lldb-script -- bin\llvm-min-tblgen.exe --version
 
   windows-msvc-separate:
     runs-on: windows-latest
@@ -62,6 +68,12 @@ jobs:
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl
           ninja bin\llvm-min-tblgen.exe
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240606/llvm-mingw-20240606-ucrt-x86_64.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
       - name: Inspect
         shell: cmd
         run: |
@@ -72,4 +84,4 @@ jobs:
           where MSVCP140.dll
           where VCRUNTIME140.dll
           where VCRUNTIME140_1.dll
-          bin\llvm-min-tblgen.exe --version
+          c:\llvm-mingw\bin\lldb -b -s ../lldb-script -- bin\llvm-min-tblgen.exe --version
