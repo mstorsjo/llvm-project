@@ -43,6 +43,16 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang-cl `
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported"
           ninja bin\llvm-min-tblgen.exe
+      - name: Inspect
+        shell: cmd
+        run: |
+          cd build
+          llvm-readobj --coff-imports bin\llvm-min-tblgen.exe
+          where llvm-readobj
+          where msvcrt.dll
+          where MSVCP140.dll
+          where VCRUNTIME140.dll
+          where VCRUNTIME140_1.dll
           bin\llvm-min-tblgen.exe --version
 
   windows-msvc-separate:
@@ -67,6 +77,16 @@ jobs:
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl
           ninja bin\llvm-min-tblgen.exe
+      - name: Inspect
+        shell: cmd
+        run: |
+          cd build
+          llvm-readobj --coff-imports bin\llvm-min-tblgen.exe
+          where llvm-readobj
+          where msvcrt.dll
+          where MSVCP140.dll
+          where VCRUNTIME140.dll
+          where VCRUNTIME140_1.dll
           bin\llvm-min-tblgen.exe --version
 
   llvm-mingw:
