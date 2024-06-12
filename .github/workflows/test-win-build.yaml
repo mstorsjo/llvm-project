@@ -1,0 +1,75 @@
+name: Test building on Windows
+on:
+  push:
+
+permissions:
+  contents: read # Default everything to read-only
+
+jobs:
+  windows-msvc:
+    runs-on: windows-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+          # The MSVC headers require a recent enough Clang
+          choco install -y llvm --version=17.0.6 --allow-downgrade
+      - uses: actions/checkout@v4
+      - name: Set up the MSVC dev environment
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build and test
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DCMAKE_C_COMPILER=clang-cl `
+            -DCMAKE_CXX_COMPILER=clang-cl
+          ninja bin\llvm-min-tblgen.exe
+      - name: Inspect
+        shell: cmd
+        run: |
+          cd build
+          llvm-readobj --coff-imports bin\llvm-min-tblgen.exe
+          where llvm-readobj
+          where msvcrt.dll
+          where MSVCP140.dll
+          where VCRUNTIME140.dll
+          where VCRUNTIME140_1.dll
+          bin\llvm-min-tblgen.exe --version
+
+  windows-msvc-separate:
+    runs-on: windows-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+          # The MSVC headers require a recent enough Clang
+          choco install -y llvm --version=17.0.6 --allow-downgrade
+      - uses: actions/checkout@v4
+      - name: Set up the MSVC dev environment
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build Clang and test tools
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DCMAKE_C_COMPILER=clang-cl `
+            -DCMAKE_CXX_COMPILER=clang-cl
+          ninja bin\llvm-min-tblgen.exe
+      - name: Inspect
+        shell: cmd
+        run: |
+          cd build
+          llvm-readobj --coff-imports bin\llvm-min-tblgen.exe
+          where llvm-readobj
+          where msvcrt.dll
+          where MSVCP140.dll
+          where VCRUNTIME140.dll
+          where VCRUNTIME140_1.dll
+          bin\llvm-min-tblgen.exe --version
