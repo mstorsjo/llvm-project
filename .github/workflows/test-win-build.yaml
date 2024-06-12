@@ -28,6 +28,12 @@ jobs:
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl
           ninja bin\llvm-min-tblgen.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary1
+          path: |
+            build/bin/llvm-min-tblgen.exe
+          retention-days: 7
       - name: Install llvm-mingw
         run: |
           curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240606/llvm-mingw-20240606-ucrt-x86_64.zip
@@ -68,6 +74,12 @@ jobs:
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl
           ninja bin\llvm-min-tblgen.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: binary2
+          path: |
+            build/bin/llvm-min-tblgen.exe
+          retention-days: 7
       - name: Install llvm-mingw
         run: |
           curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240606/llvm-mingw-20240606-ucrt-x86_64.zip
