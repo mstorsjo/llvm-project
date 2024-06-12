@@ -27,7 +27,7 @@ jobs:
         run: |
           choco install -y ninja
           # We need a newer llvm-lib, in order to build the OpenMP interface library
-          choco install -y llvm --version=17.0.6
+          choco install -y llvm --version=17.0.6 --allow-downgrade
       - uses: actions/checkout@v4
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
@@ -60,7 +60,7 @@ jobs:
         run: |
           choco install -y ninja
           # The MSVC headers require a recent enough Clang
-          choco install -y llvm --version=17.0.6
+          choco install -y llvm --version=17.0.6 --allow-downgrade
       - uses: actions/checkout@v4
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
