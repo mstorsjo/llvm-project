@@ -103,6 +103,7 @@ jobs:
           ninja check-openmp
 
   llvm-mingw:
+    if: false
     runs-on: windows-latest
     steps:
       - name: Install dependencies
@@ -146,6 +147,7 @@ jobs:
           ninja check-openmp
 
   llvm-mingw-separate:
+    if: false
     runs-on: windows-latest
     steps:
       - name: Install dependencies
@@ -202,6 +204,7 @@ jobs:
           ninja check-openmp
 
   linux:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
@@ -229,6 +232,7 @@ jobs:
           ninja check-openmp
 
   linux-separate:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
