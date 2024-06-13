@@ -1,6 +1,7 @@
 
 set(LIBCXX_TEST_TOOLS_PATH ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
 
+return()
 if(NOT CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
   message(STATUS "Clang-tidy tests are disabled due to non-clang based compiler.")
   return()

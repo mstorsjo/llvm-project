@@ -278,6 +278,29 @@ if (LIBCXX_ENABLE_SHARED)
     set_target_properties(cxx_shared PROPERTIES
                           APPEND_STRING PROPERTY LINK_FLAGS " /MANIFEST:NO")
   endif()
+
+  set_target_properties(cxx_shared PROPERTIES
+                        ARCHIVE_OUTPUT_NAME ${LIBCXX_SHARED_OUTPUT_NAME}-temp)
+
+  add_library(cxx_shared_import STATIC ${exclude_from_all} new.cpp)
+  target_include_directories(cxx_shared_import PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(cxx_shared_import PUBLIC cxx-headers)
+  add_dependencies(cxx_shared_import cxx_shared)
+  set_target_properties(cxx_shared_import
+    PROPERTIES
+      COMPILE_FLAGS "${LIBCXX_COMPILE_FLAGS}"
+      OUTPUT_NAME   "${LIBCXX_SHARED_OUTPUT_NAME}"
+      SUFFIX        ".dll.a" # Query IMPORT_SUFFIX from cxx_shared?
+  )
+  cxx_add_common_build_flags(cxx_shared_import)
+  target_compile_definitions(cxx_shared_import PRIVATE _LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS=)
+  add_custom_command(TARGET cxx_shared_import POST_BUILD
+    COMMAND "${CMAKE_AR}" qcsL "$<TARGET_LINKER_FILE:cxx_shared_import>" "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/lib${LIBCXX_SHARED_OUTPUT_NAME}-temp.dll.a"
+    COMMENT "Merging import library $<TARGET_LINKER_FILE:cxx_shared_import>"
+    VERBATIM
+  )
+  list(APPEND LIBCXX_BUILD_TARGETS "cxx_shared_import")
+
 endif()
 
 set(CMAKE_STATIC_LIBRARY_PREFIX "lib")
@@ -373,10 +396,15 @@ target_compile_options(cxx_experimental PUBLIC -D_LIBCPP_ENABLE_EXPERIMENTAL)
 add_dependencies(cxx-test-depends cxx_experimental)
 
 if (LIBCXX_INSTALL_SHARED_LIBRARY)
+  if(FALSE)
   install(TARGETS cxx_shared
-    ARCHIVE DESTINATION ${LIBCXX_INSTALL_LIBRARY_DIR} COMPONENT cxx
+    ARCHIVE DESTINATION ${LIBCXX_INSTALL_LIBRARY_DIR} COMPONENT cxx)
+  endif()
+  install(TARGETS cxx_shared
     LIBRARY DESTINATION ${LIBCXX_INSTALL_LIBRARY_DIR} COMPONENT cxx
     RUNTIME DESTINATION ${LIBCXX_INSTALL_RUNTIME_DIR} COMPONENT cxx)
+  install(TARGETS cxx_shared_import
+    ARCHIVE DESTINATION ${LIBCXX_INSTALL_LIBRARY_DIR} COMPONENT cxx)
 endif()
 
 if (LIBCXX_INSTALL_STATIC_LIBRARY)
