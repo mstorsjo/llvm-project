@@ -193,7 +193,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: 61b13e0dfe1b476d9bf0fe477983be8471cfd26b
+          ref: 99500e8c08a4d941acb8a7eb00523296fb2acf7a
       - name: Install dependencies
         run: |
           choco install -y ninja
