@@ -78,20 +78,20 @@ int main(int, char**)
     RTTI_ASSERT(f.target<int(*)(int)>() == 0);
     }
     assert(A::count == 0);
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     {
     std::function<int(int)> f;
     f = g;
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(f.target<int(*)(int)>());
     RTTI_ASSERT(f.target<A>() == 0);
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     {
     std::function<int(int)> f;
     f = (int (*)(int))0;
     assert(!f);
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(f.target<int(*)(int)>() == 0);
     RTTI_ASSERT(f.target<A>() == 0);
     }
@@ -99,7 +99,7 @@ int main(int, char**)
     std::function<int(const A*, int)> f;
     f = &A::foo;
     assert(f);
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(f.target<int (A::*)(int) const>() != 0);
     }
     {

@@ -93,9 +93,9 @@ void test_copy_assign_self() {
         std::any a;
         a = (std::any&)a;
         assertEmpty(a);
-        assert(globalMemCounter.checkOutstandingNewEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     // small
     {
         std::any a = small(1);
@@ -105,10 +105,10 @@ void test_copy_assign_self() {
 
         assert(small::count == 1);
         assertContains<small>(a, 1);
-        assert(globalMemCounter.checkOutstandingNewEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     }
     assert(small::count == 0);
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     // large
     {
         std::any a = large(1);
@@ -118,10 +118,10 @@ void test_copy_assign_self() {
 
         assert(large::count == 1);
         assertContains<large>(a, 1);
-        assert(globalMemCounter.checkOutstandingNewEq(1));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(1));
     }
     assert(large::count == 0);
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
 }
 
 template <class Tp>

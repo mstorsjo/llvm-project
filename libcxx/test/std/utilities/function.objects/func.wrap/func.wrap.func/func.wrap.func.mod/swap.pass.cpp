@@ -78,52 +78,52 @@ int main(int, char**) {
     RTTI_ASSERT(f2.target<A>()->id() == 1);
   }
   assert(A::count == 0);
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int)> f1 = A(1);
     std::function<int(int)> f2 = g;
     assert(A::count == 1);
-    assert(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
     RTTI_ASSERT(f1.target<A>()->id() == 1);
     RTTI_ASSERT(*f2.target<int (*)(int)>() == g);
     f1.swap(f2);
     assert(A::count == 1);
-    assert(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
     RTTI_ASSERT(*f1.target<int (*)(int)>() == g);
     RTTI_ASSERT(f2.target<A>()->id() == 1);
   }
   assert(A::count == 0);
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int)> f1 = g;
     std::function<int(int)> f2 = A(1);
     assert(A::count == 1);
-    assert(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
     RTTI_ASSERT(*f1.target<int (*)(int)>() == g);
     RTTI_ASSERT(f2.target<A>()->id() == 1);
     f1.swap(f2);
     assert(A::count == 1);
-    assert(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
     RTTI_ASSERT(f1.target<A>()->id() == 1);
     RTTI_ASSERT(*f2.target<int (*)(int)>() == g);
   }
   assert(A::count == 0);
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int)> f1 = g;
     std::function<int(int)> f2 = h;
     assert(A::count == 0);
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(*f1.target<int (*)(int)>() == g);
     RTTI_ASSERT(*f2.target<int (*)(int)>() == h);
     f1.swap(f2);
     assert(A::count == 0);
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(*f1.target<int (*)(int)>() == h);
     RTTI_ASSERT(*f2.target<int (*)(int)>() == g);
   }
   assert(A::count == 0);
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int)> f1 = A(1);
     assert(A::count == 1);
@@ -136,7 +136,7 @@ int main(int, char**) {
     RTTI_ASSERT(f1.target<A>()->id() == 1);
   }
   assert(A::count == 0);
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int()> f1 = g0;
     DisableAllocationGuard guard;
@@ -144,7 +144,7 @@ int main(int, char**) {
     f1.swap(f1);
     RTTI_ASSERT(*f1.target<int (*)()>() == g0);
   }
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int, int)> f1 = g2;
     DisableAllocationGuard guard;
@@ -152,7 +152,7 @@ int main(int, char**) {
     f1.swap(f1);
     RTTI_ASSERT(*f1.target<int (*)(int, int)>() == g2);
   }
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int, int, int)> f1 = g3;
     DisableAllocationGuard guard;
@@ -160,7 +160,7 @@ int main(int, char**) {
     f1.swap(f1);
     RTTI_ASSERT(*f1.target<int (*)(int, int, int)>() == g3);
   }
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int()> f1 = A(1);
     assert(A::count == 1);
@@ -170,7 +170,7 @@ int main(int, char**) {
     assert(A::count == 1);
     RTTI_ASSERT(f1.target<A>()->id() == 1);
   }
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   assert(A::count == 0);
   {
     std::function<int(int, int)> f1 = A(2);
@@ -181,7 +181,7 @@ int main(int, char**) {
     assert(A::count == 1);
     RTTI_ASSERT(f1.target<A>()->id() == 2);
   }
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   assert(A::count == 0);
   {
     std::function<int(int, int, int)> f1 = A(3);
@@ -192,7 +192,7 @@ int main(int, char**) {
     assert(A::count == 1);
     RTTI_ASSERT(f1.target<A>()->id() == 3);
   }
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   assert(A::count == 0);
 
   return 0;

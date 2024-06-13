@@ -50,7 +50,7 @@ int main(int, char**)
     {
         assert(A::count == 0);
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
 
   return 0;
 }

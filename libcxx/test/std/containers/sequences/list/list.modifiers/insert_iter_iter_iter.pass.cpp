@@ -63,7 +63,7 @@ void test() {
     catch (...)
     {
     }
-    assert(globalMemCounter.checkOutstandingNewEq(save_count));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(save_count));
     assert(l1.size() == 6);
     assert(std::distance(l1.begin(), l1.end()) == 6);
     i = l1.begin();

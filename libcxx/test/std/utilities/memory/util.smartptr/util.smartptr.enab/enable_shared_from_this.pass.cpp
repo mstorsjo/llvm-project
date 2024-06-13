@@ -89,7 +89,7 @@ int main(int, char**)
     // * Using 'weak_from_this().expired()' in C++17.
     // * Using 'shared_from_this()' in all dialects.
     {
-        assert(globalMemCounter.checkOutstandingNewEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
         T* ptr = new T;
         std::shared_ptr<T> s(ptr);
         {
@@ -115,12 +115,12 @@ int main(int, char**)
         }
 #endif
         s.reset();
-        assert(globalMemCounter.checkOutstandingNewEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     }
     // Test LWG issue 2529 again. This time check that an expired pointer
     // is replaced.
     {
-        assert(globalMemCounter.checkOutstandingNewEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
         T* ptr = new T;
         std::weak_ptr<T> weak;
         {
@@ -144,7 +144,7 @@ int main(int, char**)
             assert(ptr->shared_from_this() == s2);
         }
         delete ptr;
-        assert(globalMemCounter.checkOutstandingNewEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     }
     // Test weak_from_this_methods
 #if TEST_STD_VER > 14

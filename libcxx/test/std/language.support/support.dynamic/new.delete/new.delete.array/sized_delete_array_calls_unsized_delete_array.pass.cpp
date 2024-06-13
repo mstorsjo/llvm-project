@@ -54,7 +54,7 @@ int main(int, char**)
 
     delete [] x;
     DoNotOptimize(x);
-    assert(1 == delete_called);
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(1 == delete_called);
     assert(0 == delete_nothrow_called);
 
   return 0;

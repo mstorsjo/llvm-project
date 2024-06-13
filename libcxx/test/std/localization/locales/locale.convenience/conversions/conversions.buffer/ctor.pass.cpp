@@ -46,28 +46,28 @@ int main(int, char**)
         assert(b.rdbuf() == nullptr);
         assert(globalMemCounter.checkOutstandingNewNotEq(0));
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     {
         std::stringstream s;
         B b(s.rdbuf());
         assert(b.rdbuf() == s.rdbuf());
-        assert(globalMemCounter.checkOutstandingNewNotEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewNotEq(0));
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     {
         std::stringstream s;
         B b(s.rdbuf(), new std::codecvt_utf8<wchar_t>);
         assert(b.rdbuf() == s.rdbuf());
-        assert(globalMemCounter.checkOutstandingNewNotEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewNotEq(0));
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     {
         std::stringstream s;
         B b(s.rdbuf(), new std::codecvt_utf8<wchar_t>, std::mbstate_t());
         assert(b.rdbuf() == s.rdbuf());
-        assert(globalMemCounter.checkOutstandingNewNotEq(0));
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewNotEq(0));
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
 
 #if TEST_STD_VER >= 11
     {
