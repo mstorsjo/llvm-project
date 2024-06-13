@@ -192,6 +192,8 @@ jobs:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: 9dfd0760cb8b4f7fdb32008ade70c605e844051e
       - name: Install dependencies
         run: |
           choco install -y ninja
