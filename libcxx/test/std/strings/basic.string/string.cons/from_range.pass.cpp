@@ -98,7 +98,7 @@ void test_string_exception_safety_throwing_allocator() {
     assert(false); // The constructor call should throw.
 
   } catch (int) {
-    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.new_called == globalMemCounter.delete_called);
+    assert(globalMemCounter.new_called == globalMemCounter.delete_called);
   }
 #endif
 }
