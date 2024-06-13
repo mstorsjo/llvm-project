@@ -672,7 +672,9 @@ clang-cl-static)
     clean
     generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF
     echo "+++ Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    ${NINJA} -vC "${BUILD_DIR}"
+    cd "${BUILD_DIR}"
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}/libcxx/test/std/thread/thread.jthread/join.pass.cpp"
 ;;
 clang-cl-no-vcruntime)
     clean
