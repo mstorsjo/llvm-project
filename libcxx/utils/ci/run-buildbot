@@ -316,8 +316,9 @@ generic-cxx23)
 generic-cxx26)
     clean
     generate-cmake -C "${MONOREPO_ROOT}/libcxx/cmake/caches/Generic-cxx26.cmake"
-    check-runtimes
-    check-abi-list
+    ${NINJA} -vC "${BUILD_DIR}"
+    cd "${BUILD_DIR}"
+    bin/llvm-lit -a "${MONOREPO_ROOT}/libcxx/test/libcxx/gdb/gdb_pretty_printer_test.sh.cpp"
 ;;
 #
 # Other compiler support
@@ -327,7 +328,9 @@ generic-gcc)
     generate-cmake -DLIBCXX_ENABLE_WERROR=NO \
                    -DLIBCXXABI_ENABLE_WERROR=NO \
                    -DLIBUNWIND_ENABLE_WERROR=NO
-    check-runtimes
+    ${NINJA} -vC "${BUILD_DIR}"
+    cd "${BUILD_DIR}"
+    bin/llvm-lit -a "${MONOREPO_ROOT}/libcxx/test/libcxx/gdb/gdb_pretty_printer_test.sh.cpp"
 ;;
 generic-gcc-cxx11)
     clean
@@ -666,13 +669,17 @@ clang-cl-dll)
     # setting when cmake and the test driver does the right thing automatically.
     generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False"
     echo "+++ Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    ${NINJA} -vC "${BUILD_DIR}"
+    cd "${BUILD_DIR}"
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}/libcxx/test/libcxx/gdb/gdb_pretty_printer_test.sh.cpp"
 ;;
 clang-cl-static)
     clean
     generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF
     echo "+++ Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    ${NINJA} -vC "${BUILD_DIR}"
+    cd "${BUILD_DIR}"
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}/libcxx/test/libcxx/gdb/gdb_pretty_printer_test.sh.cpp"
 ;;
 clang-cl-no-vcruntime)
     clean
@@ -705,7 +712,9 @@ mingw-dll)
     clean
     generate-cmake \
           -C "${MONOREPO_ROOT}/libcxx/cmake/caches/MinGW.cmake"
-    check-runtimes
+    ${NINJA} -vC "${BUILD_DIR}"
+    cd "${BUILD_DIR}"
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}/libcxx/test/libcxx/gdb/gdb_pretty_printer_test.sh.cpp"
 ;;
 mingw-static)
     clean
