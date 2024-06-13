@@ -261,6 +261,63 @@ if(WIN32 AND NOT MINGW AND NOT "${CMAKE_HOST_SYSTEM_NAME}" STREQUAL "Windows")
   endif()
 endif()
 
+if (WIN32) # AND LIBCXX_ENABLE_NEW_DELETE_DEFINITIONS)
+  # For windows, give the output import library a -temp suffix
+  set_target_properties(cxx_shared PROPERTIES
+                        ARCHIVE_OUTPUT_NAME ${LIBCXX_SHARED_OUTPUT_NAME}-temp)
+
+  # Build a separate library that serves as the real import library;
+  # first only add new.cpp into this library.
+  add_library(cxx_shared_import STATIC ${exclude_from_all} new.cpp)
+  target_include_directories(cxx_shared_import PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
+  target_link_libraries(cxx_shared_import PUBLIC cxx-headers)
+  add_dependencies(cxx_shared_import cxx_shared)
+  # cxx_shared_import is defined as a static library, but give it the name
+  # style (prefix/suffix) of an import library.
+  set_target_properties(cxx_shared_import
+    PROPERTIES
+      EXCLUDE_FROM_ALL "$<IF:$<BOOL:${LIBCXX_ENABLE_SHARED}>,FALSE,TRUE>"
+      COMPILE_FLAGS "${LIBCXX_COMPILE_FLAGS}"
+      OUTPUT_NAME   "${LIBCXX_SHARED_OUTPUT_NAME}"
+      PREFIX        "${CMAKE_IMPORT_LIBRARY_PREFIX}"
+      SUFFIX        "${CMAKE_IMPORT_LIBRARY_SUFFIX}"
+  )
+  cxx_add_common_build_flags(cxx_shared_import)
+  target_compile_definitions(cxx_shared_import PRIVATE _LIBCPP_DISABLE_VISIBILITY_ANNOTATIONS=)
+  # After building, merge the actual import library into the static
+  # library that contains operator new.
+  #
+  # TODO: We should maybe first remove the import objects for
+  # operator new from here, so we don't have two alternatives for the
+  # same symbols in the final library?
+  #
+  if (MSVC)
+    add_custom_command(TARGET cxx_shared_import POST_BUILD
+      COMMAND "${CMAKE_AR}" "-out:$<TARGET_LINKER_FILE:cxx_shared_import>" "$<TARGET_LINKER_FILE:cxx_shared_import>" "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${CMAKE_IMPORT_LIBRARY_PREFIX}${LIBCXX_SHARED_OUTPUT_NAME}-temp${CMAKE_IMPORT_LIBRARY_SUFFIX}"
+      COMMENT "Merging import library $<TARGET_LINKER_FILE:cxx_shared_import>"
+      # If running from a different directory, llvm-lib adds a relative
+      # path prefix to all the archive members, contrary to MS lib.exe.
+      WORKING_DIRECTORY "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}"
+      VERBATIM
+    )
+  else()
+    # TODO: This assumes that CMAKE_AR is llvm-ar, which supports the L
+    # flag for merging all the member files from one archive into another one.
+    # (With plain GNU ar, this is possible to do with separate .mri
+    # scripts though.)
+    add_custom_command(TARGET cxx_shared_import POST_BUILD
+      COMMAND "${CMAKE_AR}" qcsL "$<TARGET_LINKER_FILE:cxx_shared_import>" "${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${CMAKE_IMPORT_LIBRARY_PREFIX}${LIBCXX_SHARED_OUTPUT_NAME}-temp${CMAKE_IMPORT_LIBRARY_SUFFIX}"
+      COMMENT "Merging import library $<TARGET_LINKER_FILE:cxx_shared_import>"
+      VERBATIM
+    )
+  endif()
+  if (LIBCXX_ENABLE_SHARED)
+    list(APPEND LIBCXX_BUILD_TARGETS "cxx_shared_import")
+  endif()
+
+endif()
+
+
 set(CMAKE_STATIC_LIBRARY_PREFIX "lib")
 
 # Build the static library.
@@ -356,9 +413,17 @@ target_compile_options(cxx_experimental PUBLIC -D_LIBCPP_ENABLE_EXPERIMENTAL)
 
 if (LIBCXX_INSTALL_SHARED_LIBRARY)
   install(TARGETS cxx_shared
-    ARCHIVE DESTINATION ${LIBCXX_INSTALL_LIBRARY_DIR} COMPONENT cxx
     LIBRARY DESTINATION ${LIBCXX_INSTALL_LIBRARY_DIR} COMPONENT cxx
     RUNTIME DESTINATION ${LIBCXX_INSTALL_RUNTIME_DIR} COMPONENT cxx)
+  if (WIN32) # AND LIBCXX_ENABLE_NEW_DELETE_DEFINITIONS)
+    # On Windows, only install the improved import library.
+    install(TARGETS cxx_shared_import
+      ARCHIVE DESTINATION ${LIBCXX_INSTALL_LIBRARY_DIR} COMPONENT cxx)
+  else()
+    # On other platforms, just install the library as usual.
+    install(TARGETS cxx_shared
+      ARCHIVE DESTINATION ${LIBCXX_INSTALL_LIBRARY_DIR} COMPONENT cxx)
+  endif()
 endif()
 
 if (LIBCXX_INSTALL_STATIC_LIBRARY)

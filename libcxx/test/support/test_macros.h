@@ -372,8 +372,7 @@ inline Tp const& DoNotOptimize(Tp const& value) {
 #define TEST_SUPPORTS_LIBRARY_INTERNAL_ALLOCATIONS 1
 #endif
 
-#if (defined(TEST_WINDOWS_DLL) && !defined(_MSC_VER)) ||                      \
-    defined(__MVS__)
+#if defined(__MVS__)
 // Normally, a replaced e.g. 'operator new' ends up used if the user code
 // does a call to e.g. 'operator new[]'; it's enough to replace the base
 // versions and have it override all of them.
@@ -382,11 +381,7 @@ inline Tp const& DoNotOptimize(Tp const& value) {
 // can't override the calls within it (see above), this fallback mechanism
 // doesn't work either.
 //
-// On Windows, when using the MSVC vcruntime, the operator new/delete fallbacks
-// are linked separately from the libc++ library, linked statically into
-// the end user executable, and these fallbacks work even in DLL configurations.
-// In MinGW configurations when built as a DLL, and on zOS, these fallbacks
-// don't work though.
+// On zOS, these fallbacks don't work though.
 #define ASSERT_WITH_OPERATOR_NEW_FALLBACKS(...) ((void)(__VA_ARGS__))
 #else
 #define ASSERT_WITH_OPERATOR_NEW_FALLBACKS(...) assert(__VA_ARGS__)
