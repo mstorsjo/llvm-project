@@ -54,7 +54,7 @@ int main(int, char**) {
         assert(new_called == 1);
 
         delete dummy_data_block;
-        assert(delete_called == 1);
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(delete_called == 1);
     }
 
     // Test with a type that is right on the verge of being overaligned

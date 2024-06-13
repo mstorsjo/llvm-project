@@ -370,6 +370,26 @@ inline Tp const& DoNotOptimize(Tp const& value) {
 #define ASSERT_WITH_OPERATOR_NEW_FALLBACKS(...) assert(__VA_ARGS__)
 #endif
 
+#if defined(TEST_WINDOWS_DLL) && !defined(_MSC_VER)
+// Normally, a replaced e.g. 'operator delete(void*)' ends up used if the user
+// code does a delete.
+//
+// If code is built with -fsized-deallocation (which is enabled by default
+// sine Clang 19), a regular call to delete will call 'operator delete(void*,
+// size_t)', which by default calls 'operator delete(void*)'.
+//
+// When the fallback operators are located within the libc++ library and we
+// can't override the calls within it (see above), this fallback mechanism
+// from 'operator delete(void*, size_t)' to 'operator delete(void*)' doesn't
+// work either.
+//
+// This is the case in MinGW configurations. (On zOS, -fno-sized-deallocation
+// is still the default.)
+#define ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(...) ((void)(__VA_ARGS__))
+#else
+#define ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(...) assert(__VA_ARGS__)
+#endif
+
 #ifdef _WIN32
 #define TEST_WIN_NO_FILESYSTEM_PERMS_NONE
 #endif

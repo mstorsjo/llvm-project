@@ -85,7 +85,7 @@ int main(int, char**)
         const my_facet& f = std::use_facet<my_facet>(loc3);
         assert(f.test() == 5);
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
 }
 #ifndef TEST_HAS_NO_EXCEPTIONS
 {
@@ -101,7 +101,7 @@ int main(int, char**)
         {
         }
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
 }
 #endif
 

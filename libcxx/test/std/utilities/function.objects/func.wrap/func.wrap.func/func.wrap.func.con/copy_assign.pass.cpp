@@ -68,27 +68,27 @@ int main(int, char**) {
     RTTI_ASSERT(f2.target<int (*)(int)>() == 0);
   }
   assert(A::count == 0);
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int)> f = g;
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(f.target<int (*)(int)>());
     RTTI_ASSERT(f.target<A>() == 0);
     std::function<int(int)> f2;
     f2 = f;
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(f2.target<int (*)(int)>());
     RTTI_ASSERT(f2.target<A>() == 0);
   }
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int)> f;
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(f.target<int (*)(int)>() == 0);
     RTTI_ASSERT(f.target<A>() == 0);
     std::function<int(int)> f2;
     f2 = f;
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
     RTTI_ASSERT(f2.target<int (*)(int)>() == 0);
     RTTI_ASSERT(f2.target<A>() == 0);
   }
@@ -121,17 +121,17 @@ int main(int, char**) {
     RTTI_ASSERT(*f.target<int(*)(int, int, int)>() == g3);
   }
 #if TEST_STD_VER >= 11
-  assert(globalMemCounter.checkOutstandingNewEq(0));
+  ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
   {
     std::function<int(int)> f = A();
     assert(A::count == 1);
-    assert(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
     RTTI_ASSERT(f.target<A>());
     RTTI_ASSERT(f.target<int (*)(int)>() == 0);
     std::function<int(int)> f2;
     f2 = std::move(f);
     assert(A::count == 1);
-    assert(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewLessThanOrEqual(1));
     RTTI_ASSERT(f2.target<A>());
     RTTI_ASSERT(f2.target<int (*)(int)>() == 0);
     RTTI_ASSERT(f.target<A>() == 0);

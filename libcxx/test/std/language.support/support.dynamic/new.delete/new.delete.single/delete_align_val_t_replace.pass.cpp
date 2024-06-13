@@ -73,7 +73,7 @@ int main(int, char**)
 
         delete bp;
         DoNotOptimize(bp);
-        assert(1 == unsized_delete_called);
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(1 == unsized_delete_called);
         assert(0 == unsized_delete_nothrow_called);
         assert(0 == aligned_delete_called);
     }
@@ -89,7 +89,7 @@ int main(int, char**)
         DoNotOptimize(ap);
         assert(0 == unsized_delete_called);
         assert(0 == unsized_delete_nothrow_called);
-        assert(1 == aligned_delete_called);
+        ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(1 == aligned_delete_called);
     }
 
   return 0;

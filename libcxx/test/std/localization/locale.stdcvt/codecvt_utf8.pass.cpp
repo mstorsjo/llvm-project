@@ -44,7 +44,7 @@ int main(int, char**)
         std::locale loc(std::locale::classic(), new C);
         assert(globalMemCounter.checkOutstandingNewNotEq(0));
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
 
   return 0;
 }

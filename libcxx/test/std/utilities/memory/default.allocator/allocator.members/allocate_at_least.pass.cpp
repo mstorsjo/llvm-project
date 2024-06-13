@@ -68,10 +68,10 @@ void test_aligned() {
     assert(T::constructed == 0);
     globalMemCounter.last_delete_align = 0;
     a.deallocate(ap.ptr, 3);
-    assert(globalMemCounter.checkOutstandingNewEq(0));
-    assert(globalMemCounter.checkDeleteCalledEq(1));
-    assert(globalMemCounter.checkAlignedDeleteCalledEq(ExpectAligned));
-    assert(globalMemCounter.checkLastDeleteAlignEq(ExpectAligned ? Align : 0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkDeleteCalledEq(1));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkAlignedDeleteCalledEq(ExpectAligned));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkLastDeleteAlignEq(ExpectAligned ? Align : 0));
     assert(T::constructed == 0);
   }
 }

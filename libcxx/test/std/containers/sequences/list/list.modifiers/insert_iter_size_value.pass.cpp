@@ -39,7 +39,7 @@ void test() {
     catch (...)
     {
     }
-    assert(globalMemCounter.checkOutstandingNewEq(save_count));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(save_count));
     assert(l1 == List(a2, a2+8));
 #endif
 }

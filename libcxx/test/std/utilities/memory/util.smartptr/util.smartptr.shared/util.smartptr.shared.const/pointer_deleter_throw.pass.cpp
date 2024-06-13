@@ -51,7 +51,7 @@ int main(int, char**)
         assert(test_deleter<A>::count == 0);
         assert(test_deleter<A>::dealloc_count == 1);
     }
-    assert(globalMemCounter.checkOutstandingNewEq(0));
+    ASSERT_WITH_OPERATOR_DELETE_FALLBACKS(globalMemCounter.checkOutstandingNewEq(0));
 
   return 0;
 }
