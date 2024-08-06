@@ -466,18 +466,39 @@ static std::error_code rename_internal(HANDLE FromHandle, const Twine &To,
                                   (ToWide.size() * sizeof(wchar_t)));
   FILE_RENAME_INFO &RenameInfo =
       *reinterpret_cast<FILE_RENAME_INFO *>(RenameInfoBuf.data());
-  RenameInfo.ReplaceIfExists = ReplaceIfExists;
+
+  RenameInfo.Flags = FILE_RENAME_FLAG_POSIX_SEMANTICS
+                   | (ReplaceIfExists ? FILE_RENAME_FLAG_REPLACE_IF_EXISTS : 0);
   RenameInfo.RootDirectory = 0;
   RenameInfo.FileNameLength = ToWide.size() * sizeof(wchar_t);
   std::copy(ToWide.begin(), ToWide.end(), &RenameInfo.FileName[0]);
 
   SetLastError(ERROR_SUCCESS);
-  if (!SetFileInformationByHandle(FromHandle, FileRenameInfo, &RenameInfo,
+  // FileRenameInfoEx requires Windows 10 RS1
+  if (!SetFileInformationByHandle(FromHandle, FileRenameInfoEx, &RenameInfo,
                                   RenameInfoBuf.size())) {
     unsigned Error = GetLastError();
     if (Error == ERROR_SUCCESS)
       Error = ERROR_CALL_NOT_IMPLEMENTED; // Wine doesn't always set error code.
-    return mapWindowsError(Error);
+    if (Error == ERROR_INVALID_PARAMETER || Error == ERROR_CALL_NOT_IMPLEMENTED) {
+      // If running on an older version of Windows, fall back on FileRenameInfo.
+      RenameInfo.ReplaceIfExists = ReplaceIfExists;
+      RenameInfo.RootDirectory = 0;
+      RenameInfo.FileNameLength = ToWide.size() * sizeof(wchar_t);
+      std::copy(ToWide.begin(), ToWide.end(), &RenameInfo.FileName[0]);
+
+      SetLastError(ERROR_SUCCESS);
+      if (!SetFileInformationByHandle(FromHandle, FileRenameInfo, &RenameInfo,
+                                      RenameInfoBuf.size())) {
+        unsigned Error = GetLastError();
+        if (Error == ERROR_SUCCESS)
+          Error = ERROR_CALL_NOT_IMPLEMENTED; // Wine doesn't always set error code.
+        return mapWindowsError(Error);
+      }
+    } else {
+      return mapWindowsError(Error);
+    }
+
   }
 
   return std::error_code();
