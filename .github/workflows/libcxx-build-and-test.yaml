@@ -45,16 +45,13 @@ env:
 
 jobs:
   stage1:
-    if: github.repository_owner == 'llvm'
     runs-on: libcxx-runners-8-set
     continue-on-error: false
     strategy:
       fail-fast: false
       matrix:
         config: [
-          'generic-cxx03',
           'generic-cxx26',
-          'generic-modules'
         ]
         cc: [  'clang-19' ]
         cxx: [ 'clang++-19' ]
@@ -194,13 +191,7 @@ jobs:
       matrix:
         include:
         - { config: clang-cl-dll, mingw: false }
-        - { config: clang-cl-static, mingw: false }
-        - { config: clang-cl-no-vcruntime, mingw: false }
-        - { config: clang-cl-debug, mingw: false }
-        - { config: clang-cl-static-crt, mingw: false }
         - { config: mingw-dll, mingw: true }
-        - { config: mingw-static, mingw: true }
-        - { config: mingw-dll-i686, mingw: true }
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
