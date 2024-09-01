@@ -4,131 +4,151 @@ on:
 
 
 jobs:
-  msvc:
-    runs-on: windows-latest
+  msvc-wine:
+    runs-on: ubuntu-latest
     steps:
-      - name: Install dependencies
+      - name: Install prerequisites
         run: |
-          choco install -y ninja
+          sudo apt-get update && sudo apt-get install wine64 python3 msitools ca-certificates cmake ninja-build winbind
+          wine64 wineboot
       - uses: actions/checkout@v4
-      - name: Set up the MSVC dev environment
-        uses: ilammy/msvc-dev-cmd@v1
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
         with:
-          max-size: 700M
-          key: msvc
-          variant: sccache
-      - name: Build
+          repository: mstorsjo/msvc-wine
+      - name: Download MSVC
         run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4
+        with:
+          path: llvm-project
+      - name: Build LLVM/Clang
+        run: |
+          cd llvm-project/llvm
           mkdir build
           cd build
-          cmake ../llvm `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang" `
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          ninja clang
-          bin\clang --version
+          export PATH=$(pwd)/../../../msvc/bin/x64:$PATH
+          CC=cl cmake .. \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../../../install \
+            -DLLVM_TARGETS_TO_BUILD="ARM;AArch64;X86" \
+            -DLLVM_ENABLE_PROJECTS="lld;clang" \
+            -DLLVM_HOST_TRIPLE="x86_64-windows-msvc" \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=TRUE \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH=$(pwd)/../../../msvc
+          ninja
 
-  clang-cl:
-    runs-on: windows-latest
+  msvc-wine-clang-cl:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Install dependencies
+      - name: Install prerequisites
         run: |
-          choco install -y ninja
+          sudo apt-get update && sudo apt-get install python3 msitools ca-certificates clang lld llvm cmake ninja-build
       - uses: actions/checkout@v4
-      - name: Set up the MSVC dev environment
-        uses: ilammy/msvc-dev-cmd@v1
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
         with:
-          max-size: 700M
-          key: clang-cl
-          variant: sccache
-      - name: Build
+          repository: mstorsjo/msvc-wine
+      - name: Download MSVC
         run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          ./install.sh $(pwd)/msvc
+      - name: Set up clang-cl/lld-link/llvm-ml symlinks
+        run: |
+          if [ ! -e /usr/bin/clang-cl ]; then
+              sudo ln -s /usr/bin/clang /usr/bin/clang-cl
+          fi
+          if [ ! -e /usr/bin/lld-link ]; then
+              sudo ln -s /usr/bin/lld /usr/bin/lld-link
+          fi
+          if [ ! -e /usr/bin/llvm-ml ]; then
+              sudo ln -s $(ls /usr/bin/llvm-ml-* | tail -1) /usr/bin/llvm-ml
+          fi
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4
+        with:
+          path: llvm-project
+      - name: Build LLVM/Clang
+        run: |
+          BIN=$(pwd)/msvc/bin/x64 . ./msvcenv-native.sh
+          cd llvm-project/llvm
           mkdir build
           cd build
-          cmake ../llvm `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang" `
-            -DCMAKE_C_COMPILER=clang-cl `
-            -DCMAKE_CXX_COMPILER=clang-cl `
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          ninja clang
-          bin\clang --version
+          CC="clang-cl --target=x86_64-windows-msvc -fms-compatibility-version=19.27" CXX="clang-cl --target=x86_64-windows-msvc -fms-compatibility-version=19.27" cmake .. \
+            -G Ninja \
+            -DCMAKE_MT=$(which llvm-mt) \
+            -DCMAKE_ASM_MASM_COMPILER=llvm-ml \
+            -DCMAKE_ASM_MASM_FLAGS="-m64" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../../../install \
+            -DLLVM_TARGETS_TO_BUILD="ARM;AArch64;X86" \
+            -DLLVM_ENABLE_PROJECTS="lld;clang" \
+            -DLLVM_HOST_TRIPLE="x86_64-windows-msvc" \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=TRUE \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH=$(pwd)/../../../msvc
+          ninja
 
-  llvm-mingw:
-    runs-on: windows-latest
+  msvc-wine-clang-cl-cmaketoolchain:
+    runs-on: ubuntu-24.04
     steps:
-      - name: Install dependencies
+      - name: Install prerequisites
         run: |
-          choco install -y ninja
+          sudo apt-get update && sudo apt-get install python3 msitools ca-certificates clang lld llvm cmake ninja-build
       - uses: actions/checkout@v4
-      - name: Install llvm-mingw
-        run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-ucrt-x86_64.zip
-          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
-          del llvm-mingw*.zip
-          mv llvm-mingw* c:\llvm-mingw
-          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
         with:
-          max-size: 700M
-          key: llvm-mingw
-          variant: ccache
-      - name: Build
+          repository: mstorsjo/msvc-wine
+      - name: Download MSVC
         run: |
+          ./vsdownload.py --accept-license --dest $(pwd)/msvc
+          cd msvc
+          ln -s kits "Windows Kits"
+      - name: Set up clang-cl/lld-link/llvm-ml symlinks
+        run: |
+          if [ ! -e /usr/bin/clang-cl ]; then
+              sudo ln -s /usr/bin/clang /usr/bin/clang-cl
+          fi
+          if [ ! -e /usr/bin/lld-link ]; then
+              sudo ln -s /usr/bin/lld /usr/bin/lld-link
+          fi
+          if [ ! -e /usr/bin/llvm-ml ]; then
+              sudo ln -s $(ls /usr/bin/llvm-ml-* | tail -1) /usr/bin/llvm-ml
+          fi
+      - name: Checkout llvm-project
+        uses: actions/checkout@v4
+        with:
+          path: llvm-project
+      - name: Build LLVM/Clang
+        run: |
+          cd llvm-project/llvm
           mkdir build
           cd build
-          cmake ../llvm `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang" `
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          ninja clang
-          bin\clang --version
-
-  llvm-mingw-dylib:
-    runs-on: windows-latest
-    steps:
-      - name: Install dependencies
-        run: |
-          choco install -y ninja
-      - uses: actions/checkout@v4
-      - name: Install llvm-mingw
-        run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240619/llvm-mingw-20240619-ucrt-x86_64.zip
-          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
-          del llvm-mingw*.zip
-          mv llvm-mingw* c:\llvm-mingw
-          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
-        with:
-          max-size: 700M
-          key: llvm-mingw-dylib
-          variant: ccache
-      - name: Build
-        run: |
-          mkdir build
-          cd build
-          cmake ../llvm `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=Release `
-            -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang" `
-            -DLLVM_LINK_LLVM_DYLIB=ON `
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          ninja clang
-          bin\clang --version
+          cmake .. \
+            -G Ninja \
+            -DCMAKE_TOOLCHAIN_FILE=../cmake/platforms/WinMsvc.cmake \
+            -DHOST_ARCH=x86_64 \
+            -DLLVM_NATIVE_TOOLCHAIN=/usr \
+            -DLLVM_WINSYSROOT=$(pwd)/../../../msvc \
+            -DCMAKE_ASM_MASM_COMPILER=llvm-ml \
+            -DCMAKE_ASM_MASM_FLAGS="-m64" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../../../install \
+            -DLLVM_TARGETS_TO_BUILD="ARM;AArch64;X86" \
+            -DLLVM_ENABLE_PROJECTS="lld;clang" \
+            -DLLVM_HOST_TRIPLE="x86_64-windows-msvc" \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=TRUE \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH=$(pwd)/../../../msvc
+          ninja
