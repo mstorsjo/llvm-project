@@ -93,7 +93,7 @@ if (ANDROID AND ANDROID_PLATFORM_LEVEL LESS 21)
 endif()
 
 # Setup flags.
-if (CXX_SUPPORTS_NOSTDLIBXX_FLAG)
+if (C_SUPPORTS_NOSTDLIBXX_FLAG)
   add_link_flags_if_supported(-nostdlib++)
 else()
   add_link_flags_if_supported(-nodefaultlibs)

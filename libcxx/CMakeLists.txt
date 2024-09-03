@@ -631,7 +631,7 @@ function(cxx_link_system_libraries target)
 # Unfortunately this cannot be used universally because for example g++ supports
 # only -nodefaultlibs in which case all libraries will be removed and
 # all libraries but c++ have to be added in manually.
-  if (CXX_SUPPORTS_NOSTDLIBXX_FLAG)
+  if (C_SUPPORTS_NOSTDLIBXX_FLAG)
     target_add_link_flags_if_supported(${target} PRIVATE "-nostdlib++")
   else()
     target_add_link_flags_if_supported(${target} PRIVATE "-nodefaultlibs")
