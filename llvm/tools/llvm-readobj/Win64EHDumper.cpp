@@ -92,9 +92,10 @@ static StringRef getUnwindRegisterName(uint8_t Reg) {
 }
 
 // Calculates the number of array slots required for the unwind code.
-static unsigned getNumUsedSlots(const UnwindCode &UnwindCode) {
+static Expected<unsigned> getNumUsedSlots(const UnwindCode &UnwindCode) {
   switch (UnwindCode.getUnwindOp()) {
-  default: llvm_unreachable("Invalid unwind code");
+  default:
+    return createError("Invalid unwind code");
   case UOP_PushNonVol:
   case UOP_AllocSmall:
   case UOP_SetFPReg:
@@ -254,8 +255,12 @@ void Dumper::printRuntimeFunctionEntry(const Context &Ctx,
 // Prints one unwind code. Because an unwind code can occupy up to 3 slots in
 // the unwind codes array, this function requires that the correct number of
 // slots is provided.
-void Dumper::printUnwindCode(const UnwindInfo& UI, ArrayRef<UnwindCode> UC) {
-  assert(UC.size() >= getNumUsedSlots(UC[0]));
+Error Dumper::printUnwindCode(const UnwindInfo& UI, ArrayRef<UnwindCode> UC) {
+  Expected<unsigned> slotsOrErr = getNumUsedSlots(UC[0]);
+  if (!slotsOrErr)
+    return slotsOrErr.takeError();
+  if (UC.size() < *slotsOrErr)
+    return createError("truncated unwind code");
 
   SW.startLine() << format("0x%02X: ", unsigned(UC[0].u.CodeOffset))
                  << getUnwindCodeTypeName(UC[0].getUnwindOp());
@@ -309,6 +314,7 @@ void Dumper::printUnwindCode(const UnwindInfo& UI, ArrayRef<UnwindCode> UC) {
   }
 
   OS << "\n";
+  return Error::success();
 }
 
 void Dumper::printUnwindInfo(const Context &Ctx, const coff_section *Section,
@@ -331,14 +337,20 @@ void Dumper::printUnwindInfo(const Context &Ctx, const coff_section *Section,
     ListScope UCS(SW, "UnwindCodes");
     ArrayRef<UnwindCode> UC(&UI.UnwindCodes[0], UI.NumCodes);
     for (const UnwindCode *UCI = UC.begin(), *UCE = UC.end(); UCI < UCE; ++UCI) {
-      unsigned UsedSlots = getNumUsedSlots(*UCI);
-      if (UsedSlots > UC.size()) {
-        errs() << "corrupt unwind data";
+      Expected<unsigned> UsedSlots = getNumUsedSlots(*UCI);
+      if (!UsedSlots) {
+        errs() << "corrupt unwind data: " << toString(UsedSlots.takeError()) << "\n";
+        return;
+      } else if (*UsedSlots > UC.size()) {
+        errs() << "corrupt unwind data\n";
         return;
       }
 
-      printUnwindCode(UI, ArrayRef(UCI, UCE));
-      UCI = UCI + UsedSlots - 1;
+      if (Error E = printUnwindCode(UI, ArrayRef(UCI, UCE))) {
+        errs() << "corrupt unwind data: " << toString(std::move(E)) << "\n";
+        return;
+      }
+      UCI = UCI + *UsedSlots - 1;
     }
   }
 
