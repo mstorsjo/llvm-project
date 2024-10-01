@@ -44,20 +44,12 @@ jobs:
         run: |
           mkdir build
           cd build
-          cmake ../llvm `
+          cmake ../compiler-rt `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang;compiler-rt;openmp" `
-            -DCLANG_DEFAULT_RTLIB=compiler-rt `
-            -DCLANG_DEFAULT_UNWINDLIB=libunwind `
-            -DCLANG_DEFAULT_CXX_STDLIB=libc++ `
-            -DCLANG_DEFAULT_LINKER=lld `
             -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE `
             -DSANITIZER_CXX_ABI=libc++ `
-            -DCMAKE_ASM_MASM_COMPILER=llvm-ml `
-            -DLIBOMP_ASMFLAGS=-m64 `
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
             -DCMAKE_C_COMPILER_LAUNCHER=ccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          ninja compiler-rt
+          ninja
