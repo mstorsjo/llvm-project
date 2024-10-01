@@ -20,7 +20,7 @@ permissions:
 
 
 jobs:
-  llvm-mingw:
+  llvm-mingw-standalone:
     runs-on: windows-latest
     steps:
       - name: Install dependencies
@@ -53,3 +53,45 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           ninja
+
+  llvm-mingw-umbrella:
+    runs-on: windows-latest
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install -y ninja
+      - uses: actions/checkout@v4
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240917/llvm-mingw-20240917-ucrt-x86_64.zip
+          powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
+          del llvm-mingw*.zip
+          mv llvm-mingw* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 700M
+          key: llvm-mingw
+          variant: ccache
+      - name: Build and test
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLLVM_TARGETS_TO_BUILD=X86 `
+            -DLLVM_ENABLE_PROJECTS="clang;compiler-rt;openmp" `
+            -DCLANG_DEFAULT_RTLIB=compiler-rt `
+            -DCLANG_DEFAULT_UNWINDLIB=libunwind `
+            -DCLANG_DEFAULT_CXX_STDLIB=libc++ `
+            -DCLANG_DEFAULT_LINKER=lld `
+            -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE `
+            -DSANITIZER_CXX_ABI=libc++ `
+            -DCMAKE_ASM_MASM_COMPILER=llvm-ml `
+            -DLIBOMP_ASMFLAGS=-m64 `
+            -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          ninja compiler-rt
