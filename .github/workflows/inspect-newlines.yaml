@@ -6,36 +6,6 @@ jobs:
   checkout:
     runs-on: windows-latest
     steps:
-      - name: Check out an old version
-        uses: actions/checkout@v4
-        with:
-          repository: llvm/llvm-project
-          ref: release/19.x
-          path: llvm-project-old
-      - name: Inspect newlines
-        shell: cmd
+      - name: Inspect the git config
         run: |
-          "c:\Program Files\Git\usr\bin\file.exe" llvm-project-old/clang/test/Driver/at_file.c
-      - name: Set autocrlf to false
-        run: |
-          git config --global core.autocrlf false
-      - name: Check out an old version, with a setting
-        uses: actions/checkout@v4
-        with:
-          repository: llvm/llvm-project
-          ref: release/19.x
-          path: llvm-project-old-setting
-      - name: Inspect newlines
-        shell: cmd
-        run: |
-          "c:\Program Files\Git\usr\bin\file.exe" llvm-project-old-setting/clang/test/Driver/at_file.c
-      - name: Check out a newer version
-        uses: actions/checkout@v4
-        with:
-          repository: llvm/llvm-project
-          ref: dccebddb3b802c4c1fe287222e454b63f850f012
-          path: llvm-project-new
-      - name: Inspect newlines
-        shell: cmd
-        run: |
-          "c:\Program Files\Git\usr\bin\file.exe" llvm-project-new/clang/test/Driver/at_file.c
+          git config --get core.autocrlf
