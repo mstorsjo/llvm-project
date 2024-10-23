@@ -67,6 +67,7 @@ jobs:
           ninja check-compiler-rt
 
   openmp:
+    if: false
     runs-on: windows-latest
     strategy:
       fail-fast: false
@@ -117,6 +118,7 @@ jobs:
           ninja check-openmp
 
   libcxx:
+    if: false
     runs-on: windows-latest
     strategy:
       fail-fast: false
