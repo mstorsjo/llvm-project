@@ -22,9 +22,6 @@ jobs:
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
           echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
-      - name: Configure Git core.autocrlf
-        run: |
-          git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - name: Build test executables
         run: |
@@ -167,9 +164,6 @@ jobs:
       - name: Install dependencies
         run: |
           choco install -y ninja
-      - name: Configure Git core.autocrlf
-        run: |
-          git config --global core.autocrlf false
       - uses: actions/checkout@v4
       - name: Install llvm-mingw
         run: |
