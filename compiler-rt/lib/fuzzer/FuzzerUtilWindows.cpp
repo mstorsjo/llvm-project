@@ -31,6 +31,10 @@
 #include <psapi.h>
 // clang-format on
 
+#if __has_include(<pthread.h>)
+#include <pthread.h>
+#endif
+
 namespace fuzzer {
 
 static const FuzzingOptions* HandlerOpt = nullptr;
@@ -238,27 +242,33 @@ size_t PageSize() {
   return PageSizeCached;
 }
 
-void SetThreadName(std::thread &thread, const std::string &name) {
-#ifndef __MINGW32__
-  // Not setting the thread name in MinGW environments. MinGW C++ standard
-  // libraries can either use native Windows threads or pthreads, so we
-  // don't know with certainty what kind of thread handle we're getting
-  // from thread.native_handle() here.
-  typedef HRESULT(WINAPI * proc)(HANDLE, PCWSTR);
-  HMODULE kbase = GetModuleHandleA("KernelBase.dll");
-  proc ThreadNameProc = reinterpret_cast<proc>(
-      (void *)GetProcAddress(kbase, "SetThreadDescription"));
-  if (ThreadNameProc) {
-    std::wstring buf;
-    auto sz = MultiByteToWideChar(CP_UTF8, 0, name.data(), -1, nullptr, 0);
-    if (sz > 0) {
-      buf.resize(sz);
-      if (MultiByteToWideChar(CP_UTF8, 0, name.data(), -1, &buf[0], sz) > 0) {
-        (void)ThreadNameProc(thread.native_handle(), buf.c_str());
+template <class Thread>
+void maybe_set_thread_name(Thread &thread, const std::string &name) {
+#if __has_include(<pthread.h>)
+  if constexpr (std::is_same_v<std::thread::native_handle_type, ::pthread_t>) {
+    (void)pthread_setname_np(thread.native_handle(), name.c_str());
+  }
+#endif
+  if constexpr (std::is_same_v<std::thread::native_handle_type, HANDLE>) {
+    typedef HRESULT(WINAPI * proc)(HANDLE, PCWSTR);
+    HMODULE kbase = GetModuleHandleA("KernelBase.dll");
+    proc ThreadNameProc = reinterpret_cast<proc>(
+        (void *)GetProcAddress(kbase, "SetThreadDescription"));
+    if (ThreadNameProc) {
+      std::wstring buf;
+      auto sz = MultiByteToWideChar(CP_UTF8, 0, name.data(), -1, nullptr, 0);
+      if (sz > 0) {
+        buf.resize(sz);
+        if (MultiByteToWideChar(CP_UTF8, 0, name.data(), -1, &buf[0], sz) > 0) {
+          (void)ThreadNameProc(thread.native_handle(), buf.c_str());
+        }
       }
     }
   }
-#endif
+}
+
+void SetThreadName(std::thread &thread, const std::string &name) {
+  maybe_set_thread_name(thread, name);
 }
 
 } // namespace fuzzer
