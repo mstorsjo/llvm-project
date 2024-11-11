@@ -660,6 +660,20 @@ DEFAULT_FEATURES += [
             """,
         ),
     ),
+    Feature(
+        name="mingw-msvcrt",
+        when=lambda cfg: "__MINGW32__" in compilerMacros(cfg)
+        and sourceBuilds(
+            cfg,
+            """
+            #include <stdlib.h>
+            #if defined(_UCRT)
+            #error not msvcrt
+            #endif
+            int main(int, char**) { return 0; }
+          """,
+        ),
+    ),
 ]
 
 # Add features representing the build host platform name.
