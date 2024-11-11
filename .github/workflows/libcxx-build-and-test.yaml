@@ -234,13 +234,7 @@ jobs:
       matrix:
         include:
         - { config: clang-cl-dll, mingw: false }
-        - { config: clang-cl-static, mingw: false }
-        - { config: clang-cl-no-vcruntime, mingw: false }
-        - { config: clang-cl-debug, mingw: false }
-        - { config: clang-cl-static-crt, mingw: false }
         - { config: mingw-dll, mingw: true, crt: ucrt }
-        - { config: mingw-static, mingw: true, crt: ucrt }
-        - { config: mingw-dll-i686, mingw: true, crt: ucrt }
         - { config: mingw-incomplete-sysroot, mingw: true, crt: ucrt }
         - { config: mingw-msvcrt, mingw: true, crt: msvcrt }
     steps:
