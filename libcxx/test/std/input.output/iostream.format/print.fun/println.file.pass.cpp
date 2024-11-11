@@ -15,6 +15,9 @@
 // The error exception has no system error string.
 // XFAIL: LIBCXX-ANDROID-FIXME
 
+// test_read_only produces the wrong error code (exception) on msvcrt.dll.
+// XFAIL: mingw-msvcrt
+
 // <print>
 
 // template<class... Args>

@@ -21,6 +21,9 @@
 // ::timespec_get is available starting with AIX 7.3 TL2
 // XFAIL: target={{.+}}-aix{{7.2.*|7.3.0.*|7.3.1.*}}
 
+// msvcrt.dll lacks timespec_get and TIME_UTC.
+// XFAIL: mingw-msvcrt
+
 #include <ctime>
 #include <type_traits>
 

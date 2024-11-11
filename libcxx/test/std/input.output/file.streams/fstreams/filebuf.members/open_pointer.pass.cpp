@@ -15,6 +15,9 @@
 
 // XFAIL: LIBCXX-AIX-FIXME
 
+// On msvcrt.dll, our handling of the noreplace flag fails.
+// XFAIL: mingw-msvcrt
+
 #include <fstream>
 #include <cassert>
 #include "test_macros.h"

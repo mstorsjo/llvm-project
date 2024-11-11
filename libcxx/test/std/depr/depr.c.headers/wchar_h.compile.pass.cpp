@@ -8,6 +8,15 @@
 
 // UNSUPPORTED: no-wide-characters
 
+// In current versions of mingw-w64 targeting msvcrt.dll, wcstok() is the nonstandard
+// function taking only 2 parameters, thus this test fails. This will be fixed soon,
+// so while currently failing, this will start succeeding after updating to a new
+// version in the near future - thus marking as UNSUPPORTED, to allow tests to pass
+// both with older and newer versions.
+// After all relevant CI environments have been updated to a newer version, this can be
+// removed.
+// UNSUPPORTED: mingw-msvcrt
+
 // <wchar.h>
 
 #include <wchar.h>
