@@ -14,6 +14,7 @@
 #
 name: Build and Test libc++
 on:
+  push:
   pull_request:
     paths:
       - 'libcxx/**'
@@ -28,10 +29,6 @@ on:
 
 permissions:
   contents: read # Default everything to read-only
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
 
 jobs:
   stage1:
@@ -232,7 +229,6 @@ jobs:
 
   windows:
     runs-on: windows-2022
-    needs: [ stage2 ]
     strategy:
       fail-fast: false
       matrix:
