@@ -8,6 +8,9 @@
 
 // UNSUPPORTED: no-localization
 
+// Serialization/deserialization of random distributions fail on msvcrt.dll.
+// XFAIL: mingw-msvcrt
+
 // <random>
 
 // template<class RealType = double>
