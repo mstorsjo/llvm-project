@@ -15,6 +15,9 @@
 // XFAIL: target={{.+}}-apple-macosx{{11|12|13|14}}{{(.+)?}}
 // XFAIL: target={{.+}}-apple-darwin{{17|18|19|20|21|22|23}}{{(.+)?}}
 
+// msvcrt.dll lacks quick_exit and at_quick_exit.
+// XFAIL: mingw-msvcrt
+
 // test quick_exit and at_quick_exit
 
 #include <cstdlib>

@@ -20,6 +20,9 @@
 // The error exception has no system error string.
 // XFAIL: LIBCXX-ANDROID-FIXME
 
+// test_read_only produces the wrong error code (exception) on msvcrt.dll.
+// XFAIL: mingw-msvcrt
+
 // <print>
 
 // void vprint_nonunicode(FILE* stream, string_view fmt, format_args args);

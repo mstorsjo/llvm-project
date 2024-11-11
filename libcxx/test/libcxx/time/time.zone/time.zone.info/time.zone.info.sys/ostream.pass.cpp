@@ -14,6 +14,9 @@
 
 // XFAIL: libcpp-has-no-experimental-tzdb
 
+// On msvcrt.dll, the formatted datetime output lacks the time fields.
+// XFAIL: mingw-msvcrt
+
 // <chrono>
 
 // template<class charT, class traits>

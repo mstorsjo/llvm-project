@@ -18,7 +18,8 @@
 
 // XFAIL: LIBCXX-AIX-FIXME
 
-// XFAIL: FROZEN-CXX03-HEADERS-FIXME
+// On msvcrt.dll, our handling of the noreplace flag fails.
+// XFAIL: mingw-msvcrt
 
 #include <fstream>
 #include <cassert>

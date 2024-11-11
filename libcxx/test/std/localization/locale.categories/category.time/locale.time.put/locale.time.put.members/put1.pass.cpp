@@ -6,6 +6,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+// Month number formatting fails with msvcrt.dll.
+// XFAIL: mingw-msvcrt
+
 // <locale>
 
 // class time_put<charT, OutputIterator>

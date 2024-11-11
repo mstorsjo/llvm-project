@@ -6,6 +6,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+// Parsing of hex pointers fails on msvcrt.dll.
+// XFAIL: mingw-msvcrt
+
 // <locale>
 
 // class num_get<charT, InputIterator>
