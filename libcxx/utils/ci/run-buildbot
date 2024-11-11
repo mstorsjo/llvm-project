@@ -691,7 +691,7 @@ clang-cl-static-crt)
     step "Running the libc++ tests"
     ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
-mingw-dll)
+mingw-dll|mingw-msvcrt)
     clean
     generate-cmake \
           -C "${MONOREPO_ROOT}/libcxx/cmake/caches/MinGW.cmake"
@@ -734,15 +734,6 @@ mingw-incomplete-sysroot)
           -C "${MONOREPO_ROOT}/libcxx/cmake/caches/MinGW.cmake"
     # Only test that building succeeds; there's not much extra value in running
     # the tests here, as it would be equivalent to the mingw-dll config above.
-    step "Building the runtimes"
-    ${NINJA} -vC "${BUILD_DIR}"
-;;
-mingw-msvcrt)
-    # All tests don't pass in msvcrt based configurations (and we don't have
-    # the right XFAIL markings for it yet), thus initially only test building.
-    clean
-    generate-cmake \
-          -C "${MONOREPO_ROOT}/libcxx/cmake/caches/MinGW.cmake"
     step "Building the runtimes"
     ${NINJA} -vC "${BUILD_DIR}"
 ;;
