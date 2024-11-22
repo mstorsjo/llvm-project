@@ -262,7 +262,7 @@ jobs:
       - name: Install llvm-mingw
         if: ${{ matrix.mingw == true }}
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240606/llvm-mingw-20240606-${{matrix.crt}}-x86_64.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20241119/llvm-mingw-20241119-${{matrix.crt}}-x86_64.zip
           powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
