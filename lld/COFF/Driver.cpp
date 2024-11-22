@@ -2307,8 +2307,11 @@ void LinkerDriver::linkerMain(ArrayRef<const char *> argsArr) {
 
   // Handle /dependentloadflag
   for (auto *arg :
-       args.filtered(OPT_dependentloadflag, OPT_dependentloadflag_opt))
+       args.filtered(OPT_dependentloadflag, OPT_dependentloadflag_opt)) {
     parseDependentLoadFlags(arg);
+    if (!ctx.symtab.findUnderscore("_load_config_used"))
+      warn("_load_config_used not found, /delayloadflag will have no effect");
+  }
 
   if (tar) {
     llvm::TimeTraceScope timeScope("Reproducer: response file");
