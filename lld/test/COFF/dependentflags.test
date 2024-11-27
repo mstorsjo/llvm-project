@@ -2,6 +2,8 @@
 
 // ---- precomp-a.obj - x86_64, hotpatch
 RUN: llvm-mc -triple x86_64-windows-msvc -filetype=obj %S/Inputs/loadconfig-cfg-x64.s -o %t.ldcfg.obj
+RUN: llvm-mc -triple x86_64-windows-msvc -filetype=obj %S/Inputs/loadconfig-defaultlib.s -o %t.ldcfg-defaultlib.obj
+RUN: llvm-mc -triple x86_64-windows-msvc -filetype=obj %S/Inputs/entry.s -o %t.entry.obj
 
 RUN: lld-link %S/Inputs/precomp-a.obj %t.ldcfg.obj /out:%t.exe /nodefaultlib /force
 RUN: llvm-readobj --coff-load-config %t.exe | FileCheck %s --check-prefix BASE
@@ -21,9 +23,11 @@ RUN: not lld-link %S/Inputs/precomp-a.obj %t.ldcfg.obj /out:%t.exe /nodefaultlib
 RUN: not lld-link %S/Inputs/precomp-a.obj %t.ldcfg.obj /out:%t.exe /nodefaultlib /force /dependentloadflag:0xf0000 2>&1 | FileCheck %s --check-prefix FAIL-RANGE
 
 // ---- Warn if _load_config_used is missing
-RUN: llvm-lib %t.ldcfg.obj /out:%t.lib
+RUN: mkdir -p %t-libdir
+RUN: llvm-lib %t.ldcfg.obj /out:%t-libdir/loadconfig.lib
+RUN: llvm-lib %t.ldcfg-defaultlib.obj /out:%t.ldcfg-defaultlib.lib
 RUN: lld-link %S/Inputs/precomp-a.obj /out:%t.exe /nodefaultlib /force /dependentloadflag:0x800 2>&1 | FileCheck %s --check-prefix WARN-NOBASE
-RUN: lld-link %S/Inputs/precomp-a.obj %t.lib /out:%t.exe /nodefaultlib /force /dependentloadflag:0x800 2>&1 | FileCheck %s --allow-empty --check-prefix NO-WARN
+RUN: lld-link %t.entry.obj /libpath:%t-libdir %t.ldcfg-defaultlib.lib /out:%t.exe /entry:entry /subsystem:console /dependentloadflag:0x801 2>&1 | FileCheck %s --allow-empty --check-prefix NO-WARN
 
 BASE: DependentLoadFlags: 0x0
 FLAGS-800: DependentLoadFlags: 0x800
