@@ -31,7 +31,7 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=sccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache `
             -DPython3_FIND_REGISTRY=NEVER `
-            -DLLVM_LIT_ARGS="-v --time-tests"
+            -DLLVM_LIT_ARGS="-v --time-tests -j2"
           ninja
       - name: Run tests
         run: |
