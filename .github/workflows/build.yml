@@ -1,0 +1,179 @@
+name: Build
+on:
+  push:
+    paths:
+
+jobs:
+  single-stage:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { cc: gcc, cxx: g++, lto: OFF, dylib: OFF }
+          - { cc: gcc, cxx: g++, lto: OFF, dylib: ON }
+          - { cc: clang, cxx: clang++, lto: OFF, dylib: OFF }
+          - { cc: clang, cxx: clang++, lto: OFF, dylib: ON }
+          - { cc: clang, cxx: clang++, lto: Thin, dylib: OFF }
+          - { cc: clang, cxx: clang++, lto: Thin, dylib: ON }
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install ninja-build clang llvm lld hyperfine
+      - uses: actions/checkout@v4
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 700M
+          key: single-stage-${{matrix.cc}}-${{matrix.lto}}-${{matrix.dylib}}
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=${{matrix.cc}} \
+            -DCMAKE_CXX_COMPILER=${{matrix.cxx}} \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}} \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
+            -DLLVM_USE_LINKER=lld \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
+            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          ninja clang
+          ninja install-clang-stripped install-clang-resource-headers
+          if [ "${{matrix.dylib}}" = "ON" ]; then
+            ninja install-clang-cpp-stripped install-LLVM-stripped
+          fi
+          cd ..
+          tar -Jcvf clang-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}.tar.xz clang-host-*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clang-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}
+          path: |
+            clang*.tar.xz
+          retention-days: 7
+      - name: Benchmark
+        run: |
+          cd build
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          hyperfine -m 3 -M 6 "bin/clang -c sqlite3.c -O3"
+
+  pgo:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lto: OFF, dylib: OFF }
+          - { lto: OFF, dylib: ON }
+          - { lto: Thin, dylib: OFF }
+          - { lto: Thin, dylib: ON }
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install ninja-build clang llvm lld hyperfine
+      - uses: actions/checkout@v4
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 700M
+          key: pgo-${{matrix.cc}}-${{matrix.lto}}-${{matrix.dylib}}
+      - name: Build instrumented
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_USE_LINKER=lld \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
+            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DLLVM_BUILD_INSTRUMENTED=IR \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          ninja clang
+      - name: Profile
+        run: |
+          cd build
+          rm profiles/*
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          bin/clang -c sqlite3.c -O3
+          llvm-profdata-18 merge -output ../profile.profdata profiles/*
+      - name: Build PGO
+        run: |
+          mkdir build-pgo
+          cd build-pgo
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-pgo-lto-${{matrix.lto}}-dylib-${{matrix.dylib}} \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
+            -DLLVM_USE_LINKER=lld \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
+            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DLLVM_PROFDATA_FILE=../profile.profdata
+          ninja clang
+          ninja install-clang-stripped install-clang-resource-headers
+          if [ "${{matrix.dylib}}" = "ON" ]; then
+            ninja install-clang-cpp-stripped install-LLVM-stripped
+          fi
+          cd ..
+          tar -Jcvf clang-pgo-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}.tar.xz clang-pgo-*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clang-pgo-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}
+          path: |
+            clang*.tar.xz
+          retention-days: 7
+      - name: Benchmark
+        run: |
+          cd build-pgo
+          cp ../build/sqlite3.c .
+          hyperfine -m 3 -M 6 "bin/clang -c sqlite3.c -O3"
+
+  benchmark:
+    runs-on: ubuntu-24.04
+    needs: [single-stage, pgo]
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install hyperfine
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Unpack
+        run: |
+          for i in clang-*.tar.xz; do
+            tar -Jxvf $i
+          done
+          rm clang-*.tar.xz
+      - name: Benchmark
+        run: |
+          set -x
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          for i in clang-*; do
+            hyperfine -m 3 -M 6 "$i/bin/clang -c sqlite3.c -O3"
+          done
