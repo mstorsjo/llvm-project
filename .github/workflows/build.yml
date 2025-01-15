@@ -1,0 +1,293 @@
+name: Build
+on:
+  push:
+    paths:
+
+jobs:
+  single-stage:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lto: OFF, dylib: ON }
+          - { lto: Thin, dylib: ON }
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install ninja-build hyperfine wine64
+          wine wineboot
+      - name: Download toolchain
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250430/llvm-mingw-20250430-ucrt-ubuntu-22.04-x86_64.tar.xz
+          tar -Jxf llvm-mingw-*.tar.xz
+          rm llvm-mingw-*.tar.xz
+          sudo mv llvm-mingw* /opt/llvm-mingw
+          echo /opt/llvm-mingw/bin >> $GITHUB_PATH
+      - uses: actions/checkout@v4
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 700M
+          key: cross-build-${{matrix.lto}}-${{matrix.dylib}}
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-clang \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-clang++ \
+            -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
+            -DCMAKE_FIND_ROOT_PATH=/opt/llvm-mingw/x86_64-w64-mingw32 \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-cross-lto-${{matrix.lto}}-dylib-${{matrix.dylib}} \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
+            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          ninja clang
+          ninja install-clang-stripped install-clang-resource-headers
+          if [ "${{matrix.dylib}}" = "ON" ]; then
+            ninja install-clang-cpp-stripped install-LLVM-stripped
+          fi
+          cd ..
+          tar -Jcvf clang-cross.tar.xz clang-cross*
+      - name: Download toolchain
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250430/llvm-mingw-20250430-ucrt-x86_64.zip
+          unzip llvm-mingw-*.zip
+          rm llvm-mingw-*.zip
+          mv llvm-mingw-* llvm-mingw
+      - name: Update clang binary
+        run: |
+          cp clang-cross*/bin/clang.exe llvm-mingw/bin/clang-20.exe
+          if [ "${{matrix.dylib}}" = "ON" ]; then
+            cp clang-cross*/bin/libLLVM-20.dll llvm-mingw/bin
+            cp clang-cross*/bin/libclang-cpp.dll llvm-mingw/bin
+          fi
+      - name: Benchmark
+        run: |
+          set -x
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3
+          hyperfine -m 3 -M 6 "wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
+      - name: Bundle up
+        run: |
+          mv llvm-mingw llvm-mingw-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}
+          zip -9r llvm-mingw-patched-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}.zip llvm-mingw-*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clang-cross-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}
+          path: |
+            clang*.tar.xz
+            llvm-mingw-patched*.zip
+          retention-days: 7
+
+  pgo:
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lto: OFF, dylib: ON, instrumentation: IR }
+          - { lto: OFF, dylib: ON, instrumentation: Frontend }
+          - { lto: Thin, dylib: ON, instrumentation: IR }
+          - { lto: Thin, dylib: ON, instrumentation: Frontend }
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install ninja-build hyperfine wine64
+          wine wineboot
+      - name: Download toolchain
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250430/llvm-mingw-20250430-ucrt-ubuntu-22.04-x86_64.tar.xz
+          tar -Jxf llvm-mingw-*.tar.xz
+          rm llvm-mingw-*.tar.xz
+          sudo mv llvm-mingw* /opt/llvm-mingw
+          echo /opt/llvm-mingw/bin >> $GITHUB_PATH
+      - uses: actions/checkout@v4
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 700M
+          key: pgo-20250430-${{matrix.lto}}-${{matrix.dylib}}-${{matrix.instrumentation}}
+      - name: Build profile runtime
+        run: |
+          cd compiler-rt
+          mkdir build
+          cd build
+          cmake .. \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(clang --print-resource-dir)
+          ninja
+          ninja install
+      - name: Build instrumented
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DLLVM_USE_LINKER=lld \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
+            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DLLVM_BUILD_INSTRUMENTED=${{matrix.instrumentation}} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          ninja clang
+      - name: Profile
+        run: |
+          cd build
+          rm profiles/*
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          bin/clang -c sqlite3.c -O3
+          llvm-profdata merge -output ../profile.profdata profiles/*
+      - name: Cross-build with PGO
+        run: |
+          mkdir build-pgo
+          cd build-pgo
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-clang \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-clang++ \
+            -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
+            -DCMAKE_FIND_ROOT_PATH=/opt/llvm-mingw/x86_64-w64-mingw32 \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-cross-pgo-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}-instrumentation-${{matrix.instrumentation}} \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
+            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DLLVM_PROFDATA_FILE=../profile.profdata
+          ninja clang
+          ninja install-clang-stripped install-clang-resource-headers
+          if [ "${{matrix.dylib}}" = "ON" ]; then
+            ninja install-clang-cpp-stripped install-LLVM-stripped
+          fi
+          cd ..
+          tar -Jcvf clang-cross.tar.xz clang-cross*
+      - name: Download toolchain
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250430/llvm-mingw-20250430-ucrt-x86_64.zip
+          unzip llvm-mingw-*.zip
+          rm llvm-mingw-*.zip
+          mv llvm-mingw-* llvm-mingw
+      - name: Update clang binary
+        run: |
+          cp clang-cross*/bin/clang.exe llvm-mingw/bin/clang-20.exe
+          if [ "${{matrix.dylib}}" = "ON" ]; then
+            cp clang-cross*/bin/libLLVM-20.dll llvm-mingw/bin
+            cp clang-cross*/bin/libclang-cpp.dll llvm-mingw/bin
+          fi
+      - name: Benchmark
+        run: |
+          set -x
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3
+          hyperfine -m 3 -M 6 "wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
+      - name: Bundle up
+        run: |
+          mv llvm-mingw llvm-mingw-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}-pgo-${{matrix.instrumentation}}
+          zip -9r llvm-mingw-patched-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}-pgo-${{matrix.instrumentation}}.zip llvm-mingw-*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clang-cross-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}-pgo-${{matrix.instrumentation}}
+          path: |
+            clang*.tar.xz
+            llvm-mingw-patched*.zip
+          retention-days: 7
+
+  benchmark:
+    runs-on: ubuntu-24.04
+    needs: [pgo, single-stage]
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install hyperfine wine64
+          wine wineboot
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Unpack
+        run: |
+          for i in llvm-mingw-patched*.zip; do
+            unzip $i
+          done
+          rm llvm-mingw-patched*.zip
+      - name: Benchmark
+        run: |
+          set -x
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          dirs=$(echo llvm-mingw-* | sed 's/ /,/g')
+          hyperfine -m 3 -M 6 -L DIR "$dirs" "wine {DIR}/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
+
+  benchmark-windows:
+    runs-on: windows-latest
+    needs: [pgo, single-stage]
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          install: >-
+            unzip
+          pacboy: >-
+            hyperfine:p
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Unpack
+        run: |
+          for i in llvm-mingw-patched*.zip; do
+            unzip $i
+          done
+          rm llvm-mingw-patched*.zip
+      - name: Benchmark
+        run: |
+          set -x
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          dirs=$(echo llvm-mingw-* | sed 's/ /,/g')
+          hyperfine -m 3 -M 6 -L DIR "$dirs" "{DIR}\\bin\\x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
