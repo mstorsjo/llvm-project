@@ -4,8 +4,14 @@ on:
     paths:
 
 jobs:
-  single-stage:
+  pgo:
     runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lto: OFF, dylib: OFF, instrumentation: IR }
+          - { lto: OFF, dylib: OFF, instrumentation: Frontend }
     steps:
       - name: Install dependencies
         run: |
@@ -23,82 +29,20 @@ jobs:
         uses: hendrikmuhs/ccache-action@v1
         with:
           max-size: 700M
-          key: cross-build
-      - name: Build
+          key: pgo-nightly-${{matrix.lto}}-${{matrix.dylib}}-${{matrix.instrumentation}}
+      - name: Build profile runtime
         run: |
+          cd compiler-rt
           mkdir build
           cd build
-          cmake ../llvm \
+          cmake .. \
             -G Ninja \
-            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-clang \
-            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-clang++ \
-            -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
-            -DCMAKE_SYSTEM_NAME=Windows \
-            -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
-            -DCMAKE_FIND_ROOT_PATH=/opt/llvm-mingw/x86_64-w64-mingw32 \
-            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
-            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
-            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
-            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DCMAKE_C_COMPILER=clang \
+            -DCMAKE_CXX_COMPILER=clang++ \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-cross \
-            -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
-            -DLLVM_TARGETS_TO_BUILD=X86 \
-            -DLLVM_ENABLE_PROJECTS="clang" \
-            -DLLVM_LINK_LLVM_DYLIB=OFF \
-            -DLLVM_ENABLE_LTO=OFF \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          ninja clang
-          ninja install-clang-stripped install-clang-resource-headers
-          cd ..
-          tar -Jcvf clang-cross.tar.xz clang-cross
-      - name: Download toolchain
-        run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-x86_64.zip
-          unzip llvm-mingw-*.zip
-          rm llvm-mingw-*.zip
-          mv llvm-mingw-* llvm-mingw
-      - name: Update clang binary
-        run: |
-          cp clang-cross/bin/clang.exe llvm-mingw/bin/clang-20.exe
-          zip -9r llvm-mingw-patched.zip llvm-mingw
-      - name: Benchmark
-        run: |
-          set -x
-          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
-          unzip sqlite-*.zip
-          rm sqlite-*.zip
-          mv sqlite-*/sqlite3.c .
-          wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3
-          hyperfine -m 3 -M 6 "wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: clang-cross
-          path: |
-            clang*.tar.xz
-            llvm-mingw-patched.zip
-          retention-days: 7
-
-  pgo:
-    if: false
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - { lto: OFF, dylib: OFF, instrumentation: IR }
-          - { lto: OFF, dylib: OFF, instrumentation: Frontend }
-    steps:
-      - name: Install dependencies
-        run: |
-          sudo apt-get update && sudo apt-get install ninja-build clang llvm lld hyperfine
-      - uses: actions/checkout@v4
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
-        with:
-          max-size: 700M
-          key: pgo-${{matrix.cc}}-${{matrix.lto}}-${{matrix.dylib}}-${{matrix.instrumentation}}
+            -DCMAKE_INSTALL_PREFIX=$(clang --print-resource-dir)
+          ninja
+          ninja install
       - name: Build instrumented
         run: |
           mkdir build
@@ -126,61 +70,44 @@ jobs:
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
           bin/clang -c sqlite3.c -O3
-          llvm-profdata-18 merge -output ../profile.profdata profiles/*
-      - name: Build PGO
+          llvm-profdata merge -output ../profile.profdata profiles/*
+      - name: Cross-build with PGO
         run: |
           mkdir build-pgo
           cd build-pgo
           cmake ../llvm \
             -G Ninja \
-            -DCMAKE_C_COMPILER=clang \
-            -DCMAKE_CXX_COMPILER=clang++ \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-clang \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-clang++ \
+            -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
+            -DCMAKE_FIND_ROOT_PATH=/opt/llvm-mingw/x86_64-w64-mingw32 \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-pgo-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}-instrumentation-${{matrix.instrumentation}} \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-cross-pgo-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}-instrumentation-${{matrix.instrumentation}} \
             -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
-            -DLLVM_USE_LINKER=lld \
             -DLLVM_TARGETS_TO_BUILD=X86 \
             -DLLVM_ENABLE_PROJECTS="clang" \
-            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
-            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DLLVM_LINK_LLVM_DYLIB=OFF \
+            -DLLVM_ENABLE_LTO=OFF \
             -DLLVM_PROFDATA_FILE=../profile.profdata
           ninja clang
           ninja install-clang-stripped install-clang-resource-headers
-          if [ "${{matrix.dylib}}" = "ON" ]; then
-            ninja install-clang-cpp-stripped install-LLVM-stripped
-          fi
           cd ..
-          tar -Jcvf clang-pgo-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}-instrumentation-${{matrix.instrumentation}}.tar.xz clang-pgo-*
-      - uses: actions/upload-artifact@v4
-        with:
-          name: clang-pgo-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}-instrumentation-${{matrix.instrumentation}}
-          path: |
-            clang*.tar.xz
-          retention-days: 7
-      - name: Benchmark
+          tar -Jcvf clang-cross.tar.xz clang-cross*
+      - name: Download toolchain
         run: |
-          cd build-pgo
-          cp ../build/sqlite3.c .
-          hyperfine -m 3 -M 6 "bin/clang -c sqlite3.c -O3"
-
-  benchmark:
-    if: false
-    runs-on: ubuntu-24.04
-    needs: [pgo]
-    steps:
-      - name: Install dependencies
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-x86_64.zip
+          unzip llvm-mingw-*.zip
+          rm llvm-mingw-*.zip
+          mv llvm-mingw-* llvm-mingw
+      - name: Update clang binary
         run: |
-          sudo apt-get update && sudo apt-get install hyperfine
-      - name: Download all artifacts
-        uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
-      - name: Unpack
-        run: |
-          for i in clang-*.tar.xz; do
-            tar -Jxvf $i
-          done
-          rm clang-*.tar.xz
+          cp clang-cross*/bin/clang.exe llvm-mingw/bin/clang-20.exe
       - name: Benchmark
         run: |
           set -x
@@ -188,6 +115,45 @@ jobs:
           unzip sqlite-*.zip
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
-          for i in clang-*; do
-            hyperfine -m 3 -M 6 "$i/bin/clang -c sqlite3.c -O3"
+          wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3
+          hyperfine -m 3 -M 6 "wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
+      - name: Bundle up
+        run: |
+          mv llvm-mingw llvm-mingw-${{matrix.instrumentation}}
+          zip -9r llvm-mingw-patched-${{matrix.instrumentation}}.zip llvm-mingw-*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clang-cross-pgo-${{matrix.instrumentation}}
+          path: |
+            clang*.tar.xz
+            llvm-mingw-patched*.zip
+          retention-days: 7
+
+  benchmark:
+    runs-on: ubuntu-24.04
+    needs: [pgo]
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install hyperfine wine64
+          wine wineboot
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Unpack
+        run: |
+          for i in llvm-mingw-patched*.zip; do
+            unzip $i
+          done
+          rm llvm-mingw-patched*.zip
+      - name: Benchmark
+        run: |
+          set -x
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          for i in llvm-mingw-*; do
+            hyperfine -m 3 -M 6 "wine $i/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
           done
