@@ -5,6 +5,7 @@ on:
 
 jobs:
   pgo:
+    if: false
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -87,6 +88,7 @@ jobs:
           hyperfine -m 3 -M 6 "bin/clang -c sqlite3.c -O3"
 
   benchmark:
+    if: false
     runs-on: ubuntu-24.04
     needs: [pgo]
     steps:
@@ -113,3 +115,26 @@ jobs:
           for i in clang-*; do
             hyperfine -m 3 -M 6 "$i/bin/clang -c sqlite3.c -O3"
           done
+
+  use-windows-compiler:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install wine64 hyperfine
+          wine wineboot
+      - name: Download toolchain
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-x86_64.zip
+          unzip llvm-mingw-*.zip
+          rm llvm-mingw-*.zip
+          mv llvm-mingw-* llvm-mingw
+      - name: Benchmark
+        run: |
+          set -x
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3
+          hyperfine -m 3 -M 6 "wine llvm-mingw/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
