@@ -15,7 +15,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install ninja-build hyperfine wine64
+          sudo dpkg --add-architecture i386
+          sudo apt-get update && sudo apt-get install ninja-build hyperfine wine64 wine32
           wine wineboot
       - name: Download toolchain
         run: |
@@ -77,12 +78,12 @@ jobs:
           cd build-pgo
           cmake ../llvm \
             -G Ninja \
-            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-clang \
-            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-clang++ \
-            -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
+            -DCMAKE_C_COMPILER=i686-w64-mingw32-clang \
+            -DCMAKE_CXX_COMPILER=i686-w64-mingw32-clang++ \
+            -DCMAKE_RC_COMPILER=i686-w64-mingw32-windres \
             -DCMAKE_SYSTEM_NAME=Windows \
-            -DCMAKE_SYSTEM_PROCESSOR=x86_64 \
-            -DCMAKE_FIND_ROOT_PATH=/opt/llvm-mingw/x86_64-w64-mingw32 \
+            -DCMAKE_SYSTEM_PROCESSOR=i686 \
+            -DCMAKE_FIND_ROOT_PATH=/opt/llvm-mingw/i686-w64-mingw32 \
             -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
             -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
             -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
@@ -101,7 +102,7 @@ jobs:
           tar -Jcvf clang-cross.tar.xz clang-cross*
       - name: Download toolchain
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-x86_64.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-i686.zip
           unzip llvm-mingw-*.zip
           rm llvm-mingw-*.zip
           mv llvm-mingw-* llvm-mingw
@@ -135,7 +136,8 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install hyperfine wine64
+          sudo dpkg --add-architecture i386
+          sudo apt-get update && sudo apt-get install hyperfine wine64 wine32
           wine wineboot
       - name: Download all artifacts
         uses: actions/download-artifact@v4
