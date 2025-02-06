@@ -30,11 +30,11 @@ jobs:
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
             -DCMAKE_C_COMPILER_LAUNCHER=sccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          ninja test-depends
+          ninja clang-test-depends
       - name: Run tests
         run: |
           cd build
-          ninja check
+          ninja check-clang
 
   clang-cl:
     runs-on: windows-latest
@@ -65,11 +65,11 @@ jobs:
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
             -DCMAKE_C_COMPILER_LAUNCHER=sccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
-          ninja test-depends
+          ninja clang-test-depends
       - name: Run tests
         run: |
           cd build
-          ninja check
+          ninja check-clang
 
   llvm-mingw:
     runs-on: windows-latest
@@ -109,8 +109,8 @@ jobs:
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
             -DCMAKE_C_COMPILER_LAUNCHER=ccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          ninja test-depends
+          ninja clang-test-depends
       - name: Run tests
         run: |
           cd build
-          ninja check
+          ninja check-clang
