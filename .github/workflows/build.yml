@@ -78,7 +78,7 @@ jobs:
           for i in clang-linux-*.tar.xz; do
             tar -Jxvf $i
           done
-          rm clang-*.tar.xz
+          rm -f clang-*.tar.xz clang-*.zip
       - name: Benchmark
         run: |
           curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
@@ -168,7 +168,7 @@ jobs:
           for i in clang-macos-*.tar.xz; do
             tar -Jxvf $i
           done
-          rm clang-*.tar.xz
+          rm -f clang-*.tar.xz clang-*.zip
       - name: Benchmark
         run: |
           curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
@@ -184,5 +184,120 @@ jobs:
           args=()
           for i in clang-*; do
             args+=("$i/bin/clang --version")
+          done
+          hyperfine -w 3 "${args[@]}"
+
+  mingw:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lto: Thin, dylib: OFF }
+          - { lto: Thin, dylib: ON }
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update && sudo apt-get install ninja-build
+      - name: Install llvm-mingw
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250305/llvm-mingw-20250305-ucrt-ubuntu-20.04-x86_64.tar.xz
+          tar -Jxf llvm-mingw-*.tar.xz
+          rm llvm-mingw-*.tar.xz
+          sudo mv llvm-mingw* /opt/llvm-mingw
+          echo /opt/llvm-mingw/bin >> $GITHUB_PATH
+      - uses: actions/checkout@v4
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 700M
+          key: mingw-${{matrix.lto}}-${{matrix.dylib}}
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_SYSTEM_NAME=Windows \
+            -DLLVM_HOST_TRIPLE=x86_64-w64-mingw32 \
+            -DCMAKE_C_COMPILER=x86_64-w64-mingw32-clang \
+            -DCMAKE_CXX_COMPILER=x86_64-w64-mingw32-clang++ \
+            -DCMAKE_RC_COMPILER=x86_64-w64-mingw32-windres \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PROGRAM=NEVER \
+            -DCMAKE_FIND_ROOT_PATH_MODE_INCLUDE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_LIBRARY=ONLY \
+            -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
+            -DCMAKE_FIND_ROOT_PATH=$(cd $(dirname $(which x86_64-w64-mingw32-clang++))/../x86_64-w64-mingw32 && pwd) \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-mingw-lto-${{matrix.lto}}-dylib-${{matrix.dylib}} \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
+            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          ninja clang
+          ninja install-clang-stripped install-clang-resource-headers
+          if [ "${{matrix.dylib}}" = "ON" ]; then
+            ninja install-clang-cpp-stripped install-LLVM-stripped
+          fi
+          cd ..
+          rm -f clang-mingw-*/bin/clang++.exe
+          rm -f clang-mingw-*/bin/clang-cl.exe
+          rm -f clang-mingw-*/bin/clang-cpp.exe
+          cp -a /opt/llvm-mingw/bin/*.cfg clang-mingw-*/bin
+          cp -a /opt/llvm-mingw/x86_64-w64-mingw32 clang-mingw-*
+          rm clang-mingw-*/x86_64-w64-mingw32/include
+          cp -a /opt/llvm-mingw/generic-w64-mingw32/include clang-mingw-*
+          cp -a /opt/llvm-mingw/x86_64-w64-mingw32/bin/*.dll clang-mingw-*/bin
+          rm -rf clang-mingw-*/lib/clang
+          cp -a /opt/llvm-mingw/lib/clang clang-mingw-*/lib
+          zip -9r clang-mingw-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}.zip clang-mingw-*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clang-mingw-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}
+          path: |
+            clang*.zip
+          retention-days: 7
+
+  benchmark-mingw:
+    runs-on: windows-latest
+    needs: [mingw]
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          install: >-
+            unzip
+          pacboy: >-
+            hyperfine:p
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Unpack
+        run: |
+          for i in clang-mingw-*.zip; do
+            unzip $i
+          done
+          rm -f clang-*.tar.xz clang-*.zip
+      - name: Benchmark
+        run: |
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          args=()
+          for i in clang-*; do
+            args+=("$i\\bin\\clang -c sqlite3.c -O3")
+          done
+          hyperfine -m 3 -M 6 "${args[@]}"
+          args=()
+          for i in clang-*; do
+            args+=("$i\\bin\\clang --version")
           done
           hyperfine -w 3 "${args[@]}"
