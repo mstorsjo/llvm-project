@@ -81,11 +81,12 @@ jobs:
           rm clang-*.tar.xz
       - name: Benchmark
         run: |
-          set -x
           curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
           unzip sqlite-*.zip
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
+          args=()
           for i in clang-*; do
-            hyperfine -m 3 -M 6 "$i/bin/clang -c sqlite3.c -O3"
+            args+=("$i/bin/clang -c sqlite3.c -O3")
           done
+          hyperfine -m 3 -M 6 "${args[@]}"
