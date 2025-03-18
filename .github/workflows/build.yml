@@ -95,3 +95,94 @@ jobs:
             args+=("$i/bin/clang --version")
           done
           hyperfine -w 3 "${args[@]}"
+
+  macos:
+    runs-on: macos-14
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { lto: Thin, dylib: OFF }
+          - { lto: Thin, dylib: ON }
+    steps:
+      - name: Install dependencies
+        run: |
+          brew install ninja hyperfine
+      - uses: actions/checkout@v4
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@v1
+        with:
+          max-size: 700M
+          key: macos-${{matrix.lto}}-${{matrix.dylib}}
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake ../llvm \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-macos-lto-${{matrix.lto}}-dylib-${{matrix.dylib}} \
+            -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
+            -DLLVM_TARGETS_TO_BUILD=AArch64 \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
+            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+          ninja clang
+          ninja install-clang-stripped install-clang-resource-headers
+          if [ "${{matrix.dylib}}" = "ON" ]; then
+            ninja install-clang-cpp-stripped install-LLVM-stripped
+          fi
+          cd ..
+          tar -Jcvf clang-macos-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}.tar.xz clang-macos-*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clang-macos-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}
+          path: |
+            clang*.tar.xz
+          retention-days: 7
+      - name: Benchmark
+        run: |
+          cd build
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          export SDKROOT=$(xcrun --show-sdk-path)
+          hyperfine -m 3 -M 6 "bin/clang -c sqlite3.c -O3"
+
+  benchmark-macos:
+    runs-on: macos-14
+    needs: [macos]
+    steps:
+      - name: Install dependencies
+        run: |
+          brew install hyperfine
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Unpack
+        run: |
+          for i in clang-macos-*.tar.xz; do
+            tar -Jxvf $i
+          done
+          rm clang-*.tar.xz
+      - name: Benchmark
+        run: |
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          export SDKROOT=$(xcrun --show-sdk-path)
+          args=()
+          for i in clang-*; do
+            args+=("$i/bin/clang -c sqlite3.c -O3")
+          done
+          hyperfine -m 3 -M 6 "${args[@]}"
+          args=()
+          for i in clang-*; do
+            args+=("$i/bin/clang --version")
+          done
+          hyperfine -w 3 "${args[@]}"
