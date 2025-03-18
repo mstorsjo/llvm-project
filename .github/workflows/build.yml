@@ -90,3 +90,8 @@ jobs:
             args+=("$i/bin/clang -c sqlite3.c -O3")
           done
           hyperfine -m 3 -M 6 "${args[@]}"
+          args=()
+          for i in clang-*; do
+            args+=("$i/bin/clang --version")
+          done
+          hyperfine -w 3 "${args[@]}"
