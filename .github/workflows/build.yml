@@ -4,7 +4,7 @@ on:
     paths:
 
 jobs:
-  single-stage:
+  linux:
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
@@ -62,9 +62,9 @@ jobs:
           mv sqlite-*/sqlite3.c .
           hyperfine -m 3 -M 6 "bin/clang -c sqlite3.c -O3"
 
-  benchmark:
+  benchmark-linux:
     runs-on: ubuntu-24.04
-    needs: [single-stage]
+    needs: [linux]
     steps:
       - name: Install dependencies
         run: |
