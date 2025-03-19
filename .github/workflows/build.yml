@@ -31,7 +31,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{matrix.cc}} \
             -DCMAKE_CXX_COMPILER=${{matrix.cxx}} \
             -DCMAKE_BUILD_TYPE=Release \
-            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}} \
+            -DCMAKE_INSTALL_PREFIX=$(pwd)/../clang-linux-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}} \
             -DLLVM_INSTALL_TOOLCHAIN_ONLY=ON \
             -DLLVM_USE_LINKER=lld \
             -DLLVM_TARGETS_TO_BUILD=X86 \
@@ -46,10 +46,10 @@ jobs:
             ninja install-clang-cpp-stripped install-LLVM-stripped
           fi
           cd ..
-          tar -Jcvf clang-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}.tar.xz clang-host-*
+          tar -Jcvf clang-linux-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}.tar.xz clang-linux-*
       - uses: actions/upload-artifact@v4
         with:
-          name: clang-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}
+          name: clang-linux-host-${{matrix.cc}}-lto-${{matrix.lto}}-dylib-${{matrix.dylib}}
           path: |
             clang*.tar.xz
           retention-days: 7
@@ -75,7 +75,7 @@ jobs:
           merge-multiple: true
       - name: Unpack
         run: |
-          for i in clang-*.tar.xz; do
+          for i in clang-linux-*.tar.xz; do
             tar -Jxvf $i
           done
           rm clang-*.tar.xz
