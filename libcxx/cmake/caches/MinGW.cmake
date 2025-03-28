@@ -10,3 +10,5 @@ set(LIBUNWIND_USE_COMPILER_RT ON CACHE BOOL "")
 # Without this flag, 'long double' (which is 80 bit on x86 mingw, but
 # 64 bit in MSVC) isn't handled correctly in printf.
 set(LIBCXX_EXTRA_SITE_DEFINES "__USE_MINGW_ANSI_STDIO=1" CACHE STRING "")
+
+set(LIBCXX_TEST_PARAMS "optimization=speed" CACHE STRING "")
