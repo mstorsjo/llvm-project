@@ -657,13 +657,13 @@ clang-cl-dll)
     # correctly when libc++ visibility attributes indicate dllimport linkage
     # anyway), thus just disable the experimental library. Remove this
     # setting when cmake and the test driver does the right thing automatically.
-    generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False"
+    generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False;optimization=speed"
     step "Running the libc++ tests"
     ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
 clang-cl-static)
     clean
-    generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF
+    generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF -DLIBCXX_TEST_PARAMS="optimization=speed"
     step "Running the libc++ tests"
     ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
@@ -673,14 +673,14 @@ clang-cl-no-vcruntime)
     # tests with -D_HAS_EXCEPTIONS=0, which users might set in certain
     # translation units while using libc++, even if libc++ is built with
     # exceptions enabled.
-    generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False" \
+    generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False;optimization=speed" \
                               -DLIBCXX_TEST_CONFIG="llvm-libc++-shared-no-vcruntime-clangcl.cfg.in"
     step "Running the libc++ tests"
     ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
 clang-cl-debug)
     clean
-    generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False" \
+    generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False;optimization=speed" \
                               -DCMAKE_BUILD_TYPE=Debug
     step "Running the libc++ tests"
     ${NINJA} -vC "${BUILD_DIR}" check-cxx
@@ -689,7 +689,7 @@ clang-cl-static-crt)
     clean
     # Test linking a static libc++ with the static CRT ("MultiThreaded" denotes
     # the static CRT, as opposed to "MultiThreadedDLL" which is the default).
-    generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF \
+    generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="optimization=speed" -DLIBCXX_ENABLE_SHARED=OFF \
                               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
     step "Running the libc++ tests"
     ${NINJA} -vC "${BUILD_DIR}" check-cxx
