@@ -79,6 +79,12 @@ jobs:
             tar -Jxvf $i
           done
           rm -f clang-*.tar.xz clang-*.zip
+      - name: Checkout linux
+        uses: actions/checkout@v4
+        with:
+          repository: torvalds/linux
+          ref: v6.14
+          path: linux
       - name: Benchmark
         run: |
           curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
@@ -88,6 +94,9 @@ jobs:
           dirs=$(echo clang-* | sed 's/ /,/g')
           hyperfine -m 3 -M 6 -L DIR "$dirs" "{DIR}/bin/clang -c sqlite3.c -O3"
           hyperfine -w 3 -L DIR "$dirs" "{DIR}/bin/clang --version"
+          cd linux
+          make allmodconfig
+          hyperfine -L DIR "$dirs" "rm -f .config; make CC=../{DIR}/bin/clang allmodconfig"
 
   macos:
     runs-on: macos-14
