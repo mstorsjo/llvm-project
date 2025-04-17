@@ -85,16 +85,9 @@ jobs:
           unzip sqlite-*.zip
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
-          args=()
-          for i in clang-*; do
-            args+=("$i/bin/clang -c sqlite3.c -O3")
-          done
-          hyperfine -m 3 -M 6 "${args[@]}"
-          args=()
-          for i in clang-*; do
-            args+=("$i/bin/clang --version")
-          done
-          hyperfine -w 3 "${args[@]}"
+          dirs=$(echo clang-* | sed 's/ /,/g')
+          hyperfine -m 3 -M 6 -L DIR "$dirs" "{DIR}/bin/clang -c sqlite3.c -O3"
+          hyperfine -w 3 -L DIR "$dirs" "{DIR}/bin/clang --version"
 
   macos:
     runs-on: macos-14
@@ -176,16 +169,9 @@ jobs:
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
           export SDKROOT=$(xcrun --show-sdk-path)
-          args=()
-          for i in clang-*; do
-            args+=("$i/bin/clang -c sqlite3.c -O3")
-          done
-          hyperfine -m 3 -M 6 "${args[@]}"
-          args=()
-          for i in clang-*; do
-            args+=("$i/bin/clang --version")
-          done
-          hyperfine -w 3 "${args[@]}"
+          dirs=$(echo clang-* | sed 's/ /,/g')
+          hyperfine -m 3 -M 6 -L DIR "$dirs" "{DIR}/bin/clang -c sqlite3.c -O3"
+          hyperfine -w 3 -L DIR "$dirs" "{DIR}/bin/clang --version"
 
   mingw:
     runs-on: ubuntu-latest
@@ -291,13 +277,6 @@ jobs:
           unzip sqlite-*.zip
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
-          args=()
-          for i in clang-*; do
-            args+=("$i\\bin\\clang -c sqlite3.c -O3")
-          done
-          hyperfine -m 3 -M 6 "${args[@]}"
-          args=()
-          for i in clang-*; do
-            args+=("$i\\bin\\clang --version")
-          done
-          hyperfine -w 3 "${args[@]}"
+          dirs=$(echo clang-* | sed 's/ /,/g')
+          hyperfine -m 3 -M 6 -L DIR "$dirs" "{DIR}\\bin\\clang -c sqlite3.c -O3"
+          hyperfine -w 3 -L DIR "$dirs" "{DIR}\\bin\\clang --version"
