@@ -28,6 +28,7 @@ jobs:
             -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DPython3_EXECUTABLE=$(which python) \
             -DLLVM_LIT_ARGS="-v --time-tests"
           ninja lldb-test-depends
       - name: Run tests
