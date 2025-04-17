@@ -34,5 +34,5 @@ jobs:
             -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
-            -DPython3_FIND_STRATEGY=LOCATION \
+            -DPython3_EXECUTABLE=$(which python) \
             -DLLVM_LIT_ARGS="-v --time-tests"
