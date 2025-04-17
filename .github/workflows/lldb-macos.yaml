@@ -9,7 +9,7 @@ jobs:
       - name: Install dependencies
         run: |
           brew install ninja swig
-          pip install psutil
+          pip install psutil packaging
       - uses: actions/checkout@v4
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
