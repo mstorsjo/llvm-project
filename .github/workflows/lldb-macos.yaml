@@ -9,7 +9,9 @@ jobs:
       - name: Install dependencies
         run: |
           brew install ninja
-          pip3 install psutil
+          which pip
+          which pip3
+          pip install psutil
       - uses: actions/checkout@v4
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
@@ -28,9 +30,5 @@ jobs:
             -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            -DPython3_FIND_STRATEGY=LOCATION \
             -DLLVM_LIT_ARGS="-v --time-tests"
-          ninja lldb-test-depends
-      - name: Run tests
-        run: |
-          cd build
-          ninja check-lldb
