@@ -68,7 +68,7 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          sudo apt-get update && sudo apt-get install hyperfine
+          sudo apt-get update && sudo apt-get install hyperfine clang
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
@@ -94,9 +94,13 @@ jobs:
           dirs=$(echo clang-* | sed 's/ /,/g')
           hyperfine -m 3 -M 6 -L DIR "$dirs" "{DIR}/bin/clang -c sqlite3.c -O3"
           hyperfine -w 3 -L DIR "$dirs" "{DIR}/bin/clang --version"
+          CCS="gcc,clang"
+          for i in clang-*; do
+            CCS="$CCS,../$i/bin/clang"
+          done
           cd linux
           make allmodconfig
-          hyperfine -L DIR "$dirs" "rm -f .config; make CC=../{DIR}/bin/clang allmodconfig"
+          hyperfine -L CC "$CCS" "rm -f .config; make CC={CC} allmodconfig"
 
   macos:
     runs-on: macos-14
