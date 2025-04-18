@@ -65,6 +65,7 @@ def main():
             env["TEMP"] = os.environ.get("TEMP")
 
     # Run the command line with the given environment in the execution directory.
+    print("executing " + commandLine)
     return subprocess.call(commandLine, cwd=args.execdir, env=env, shell=False)
 
 
