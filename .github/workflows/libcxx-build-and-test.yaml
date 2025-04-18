@@ -251,6 +251,7 @@ jobs:
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_INSTALL_MESSAGE=NEVER `
+            -DCMAKE_CXX_COMPILER_TARGET=aarch64-w64-windows-gnu `
             -DPython3_EXECUTABLE="$Env:PYTHON_EXE" `
             -DLIBCXX_ENABLE_WERROR=YES `
             -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" `
