@@ -122,11 +122,13 @@ def _makeConfigTest(config):
     class TestWrapper(lit.Test.Test):
         def __enter__(self):
             testDir, _ = libcxx.test.format._getTempPaths(self)
+            print("makedirs(" + testDir + ")")
             os.makedirs(testDir)
             return self
 
         def __exit__(self, *args):
             testDir, _ = libcxx.test.format._getTempPaths(self)
+            print("rmtree(" + testDir + ")")
             shutil.rmtree(testDir)
             os.remove(tmp.name)
 

@@ -884,6 +884,7 @@ def _executeShCmd(cmd, shenv, results, timeoutHelper):
             args = quote_windows_command(args)
 
         try:
+            print(args)
             procs.append(
                 subprocess.Popen(
                     args,
