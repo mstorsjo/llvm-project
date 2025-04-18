@@ -2,6 +2,8 @@
 # Invokes config.guess
 
 function( get_host_triple var )
+message("CMAKE_HOST_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+message("CMAKE_SIZEOF_VOID_P ${CMAKE_SIZEOF_VOID_P}")
   if( MSVC OR CMAKE_CXX_SIMULATE_ID STREQUAL "MSVC")
     if( CMAKE_C_COMPILER_ARCHITECTURE_ID MATCHES "ARM64.*" )
       set( value "aarch64-pc-windows-msvc" )
