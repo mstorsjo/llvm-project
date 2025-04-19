@@ -62,7 +62,6 @@ jobs:
             -DCOMPILER_RT_INCLUDE_TESTS=ON `
             -DCOMPILER_RT_BUILD_LIBFUZZER=OFF `
             -DCOMPILER_RT_BUILD_ORC=OFF `
-            -DCOMPILER_RT_SANITIZERS_TO_BUILD=ubsan `
             -DLLVM_LIT_ARGS="-v --time-tests"
           ninja
           ninja check-compiler-rt
