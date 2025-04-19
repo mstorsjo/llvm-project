@@ -235,7 +235,15 @@ jobs:
             **/crash_diagnostics/*
 
   windows:
-    runs-on: windows-11-arm
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: aarch64, target_arch: armv7 }
+          - { arch: aarch64, target_arch: aarch64 }
+          - { arch: x86_64,  target_arch: i686 }
+          - { arch: x86_64,  target_arch: x86_64 }
+    runs-on: ${{startsWith(matrix.arch, 'a') && 'windows-11-arm' || 'windows-latest'}}
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
       - name: Install dependencies
@@ -244,7 +252,7 @@ jobs:
           pip install psutil
       - name: Install llvm-mingw
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250417/llvm-mingw-20250417-ucrt-aarch64.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250417/llvm-mingw-20250417-ucrt-${{matrix.arch}}.zip
           powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
@@ -262,13 +270,13 @@ jobs:
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DCMAKE_INSTALL_MESSAGE=NEVER `
-            -DCMAKE_CXX_COMPILER_TARGET=aarch64-w64-windows-gnu `
+            -DCMAKE_CXX_COMPILER_TARGET=${{matrix.target_arch}}-w64-windows-gnu `
             -DPython3_EXECUTABLE="$Env:PYTHON_EXE" `
             -DLIBCXX_ENABLE_WERROR=YES `
             -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" `
             -DLIBCXX_CXX_ABI=libcxxabi `
-            -DCMAKE_C_COMPILER=clang `
-            -DCMAKE_CXX_COMPILER=clang++ `
+            -DCMAKE_C_COMPILER=${{matrix.target_arch}}-w64-mingw32-clang `
+            -DCMAKE_CXX_COMPILER=${{matrix.target_arch}}-w64-mingw32-clang++ `
             -DLIBCXXABI_ENABLE_SHARED=NO `
             -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=YES `
             -DLIBCXX_USE_COMPILER_RT=YES `
