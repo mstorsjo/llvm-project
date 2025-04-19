@@ -284,4 +284,4 @@ jobs:
             -DLIBCXX_EXTRA_SITE_DEFINES="__USE_MINGW_ANSI_STDIO=1" `
             -DLLVM_LIT_ARGS="-v --time-tests"
           ninja
-          ninja check-cxxabi
+          ninja check-unwind
