@@ -1,8 +1,8 @@
 // RUN: echo "dxv" > %T/dxv && chmod 754 %T/dxv
 
-// RUN: env PATH="" %clang_dxc -T cs_6_0 %s -metal -Fo %t.mtl -### 2>&1 | FileCheck --check-prefix=NO_DXV %s
-// RUN: env PATH="" %clang_dxc -T cs_6_0 %s -metal -Vd -Fo %t.mtl -### 2>&1 | FileCheck --check-prefix=NO_DXV %s
-// RUN: env PATH="" %clang_dxc -T cs_6_0 %s --dxv-path=%T -metal -Vd -Fo %t.mtl -### 2>&1 | FileCheck --check-prefix=NO_DXV %s
+// RUN: %if !system-windows %{ env PATH="" %clang_dxc -T cs_6_0 %s -metal -Fo %t.mtl -### 2>&1 | FileCheck --check-prefix=NO_DXV %s %}
+// RUN: %if !system-windows %{ env PATH="" %clang_dxc -T cs_6_0 %s -metal -Vd -Fo %t.mtl -### 2>&1 | FileCheck --check-prefix=NO_DXV %s %}
+// RUN: %if !system-windows %{ env PATH="" %clang_dxc -T cs_6_0 %s --dxv-path=%T -metal -Vd -Fo %t.mtl -### 2>&1 | FileCheck --check-prefix=NO_DXV %s %}
 // NO_DXV: "{{.*}}metal-shaderconverter{{(.exe)?}}" "{{.*}}.obj" "-o" "{{.*}}.mtl"
 
 // RUN: %clang_dxc -T cs_6_0 %s -metal -### 2>&1 | FileCheck --check-prefix=NO_MTL %s
