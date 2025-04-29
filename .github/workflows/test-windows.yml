@@ -21,11 +21,16 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install llvm-mingw
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-${{matrix.arch}}.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250417/llvm-mingw-20250417-ucrt-${{matrix.arch}}.zip
           powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
           echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Setup ccache
+        uses: hendrikmuhs/ccache-action@1eaec4d0426ec8b42d342bf1e7b56fd3660a8fd9
+        with:
+          max-size: 1000M
+          key: llvm-test-win-${{matrix.arch}}
       - name: Build the project and unittests
         run: |
           mkdir build
@@ -41,6 +46,8 @@ jobs:
             -DLLVM_WINDOWS_PREFER_FORWARD_SLASH=OFF `
             -DCMAKE_C_COMPILER=clang `
             -DCMAKE_CXX_COMPILER=clang++ `
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache `
             -DLLVM_LIT_ARGS="-v --time-tests"
           ninja test-depends
           cp c:\llvm-mingw\bin\libc++.dll bin
