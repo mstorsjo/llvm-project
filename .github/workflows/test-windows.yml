@@ -14,7 +14,9 @@ jobs:
     steps:
       - name: Install dependencies
         run: |
-          choco install -y ninja cmake
+          choco install -y ninja
+          curl -LO https://github.com/Kitware/CMake/releases/download/v4.0.1/cmake-4.0.1-windows-arm64.msi
+          msiexec /i cmake-4.0.1-windows-arm64.msi /qn /norestart
       - name: Configure Git core.autocrlf
         run: |
           git config --global core.autocrlf false
