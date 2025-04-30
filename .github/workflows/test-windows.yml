@@ -35,6 +35,7 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release `
             -DLLVM_HOST_TRIPLE=${{matrix.arch}}-w64-windows-gnu `
             -DCMAKE_SYSTEM_PROCESSOR=${{matrix.arch}} `
+            -DCMAKE_SYSTEM_NAME=Windows `
             -DLLVM_TARGETS_TO_BUILD="X86;AArch64" `
             -DLLVM_WINDOWS_PREFER_FORWARD_SLASH=OFF `
             -DCMAKE_C_COMPILER=clang `
