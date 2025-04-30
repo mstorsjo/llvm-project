@@ -16,7 +16,8 @@ jobs:
         run: |
           choco install -y ninja
           curl -LO https://github.com/Kitware/CMake/releases/download/v4.0.1/cmake-4.0.1-windows-arm64.msi
-          msiexec /i cmake-4.0.1-windows-arm64.msi /qn /norestart
+          $msiexec = Start-Process msiexec "/i cmake-4.0.1-windows-arm64.msi /qn /norestart /l* install.log" -NoNewWindow -PassThru
+          $msiexec.WaitForExit()
       - name: Configure Git core.autocrlf
         run: |
           git config --global core.autocrlf false
