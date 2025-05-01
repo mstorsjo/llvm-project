@@ -35,7 +35,7 @@ jobs:
           cmake ../llvm `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DLLVM_HOST_TRIPLE=${{matrix.arch}}-w64-windows-gnu `
+            -DLLVM_HOST_TRIPLE=${{matrix.arch == 'armv7' && 'thumbv7' || matrix.arch}}-w64-windows-gnu `
             -DCMAKE_SYSTEM_PROCESSOR=${{matrix.arch}} `
             -DCMAKE_SYSTEM_NAME=Windows `
             -DLLVM_TARGETS_TO_BUILD="X86;ARM;AArch64" `
