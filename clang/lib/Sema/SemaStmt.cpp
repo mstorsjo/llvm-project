@@ -526,7 +526,7 @@ Sema::ActOnCaseExpr(SourceLocation CaseLoc, ExprResult Val) {
 
     ExprResult ER = E;
     if (!E->isValueDependent())
-      ER = VerifyIntegerConstantExpression(E, AllowFold);
+      ER = VerifyIntegerConstantExpression(E, AllowFoldKind::Allow);
     if (!ER.isInvalid())
       ER = DefaultLvalueConversion(ER.get());
     if (!ER.isInvalid())
@@ -3858,7 +3858,8 @@ Sema::ActOnReturnStmt(SourceLocation ReturnLoc, Expr *RetValExp,
         << FSI->getFirstCoroutineStmtKeyword();
   }
 
-  CheckInvalidBuiltinCountedByRef(RetVal.get(), ReturnArgKind);
+  CheckInvalidBuiltinCountedByRef(RetVal.get(),
+                                  BuiltinCountedByRefKind::ReturnArg);
 
   StmtResult R =
       BuildReturnStmt(ReturnLoc, RetVal.get(), /*AllowRecovery=*/true);
@@ -4317,7 +4318,7 @@ StmtResult Sema::ActOnCXXTryBlock(SourceLocation TryLoc, Stmt *TryBlock,
   // Exceptions aren't allowed in CUDA device code.
   if (getLangOpts().CUDA)
     CUDA().DiagIfDeviceCode(TryLoc, diag::err_cuda_device_exceptions)
-        << "try" << llvm::to_underlying(CUDA().CurrentTarget());
+        << "try" << CUDA().CurrentTarget();
 
   if (getCurScope() && getCurScope()->isOpenMPSimdDirectiveScope())
     Diag(TryLoc, diag::err_omp_simd_region_cannot_use_stmt) << "try";
