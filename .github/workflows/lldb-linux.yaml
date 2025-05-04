@@ -4,7 +4,7 @@ on:
 
 jobs:
   linux:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-latest
     steps:
       - name: Install dependencies
         run: |
@@ -22,7 +22,7 @@ jobs:
           cmake ../llvm \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
-            -DLLVM_TARGETS_TO_BUILD="AArch64;X86" \
+            -DLLVM_TARGETS_TO_BUILD=X86 \
             -DLLVM_ENABLE_PROJECTS="clang;lld;lldb" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
