@@ -171,6 +171,5 @@ jobs:
           unzip sqlite-*.zip
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
-          for i in clang-*; do
-            hyperfine -m 3 -M 6 "$i/bin/clang -c sqlite3.c -O3"
-          done
+          dirs=$(echo clang-* | sed 's/ /,/g')
+          hyperfine -m 3 -M 6 -L DIR "$dirs" "{DIR}/bin/clang -c sqlite3.c -O3"
