@@ -255,9 +255,8 @@ jobs:
           unzip sqlite-*.zip
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
-          for i in llvm-mingw-*; do
-            hyperfine -m 3 -M 6 "wine $i/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
-          done
+          dirs=$(echo llvm-mingw-* | sed 's/ /,/g')
+          hyperfine -m 3 -M 6 -L DIR "$dirs" "wine {DIR}/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
 
   benchmark-windows:
     runs-on: windows-latest
@@ -290,6 +289,5 @@ jobs:
           unzip sqlite-*.zip
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
-          for i in llvm-mingw-*; do
-            hyperfine -m 3 -M 6 "$i\\bin\\x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
-          done
+          dirs=$(echo llvm-mingw-* | sed 's/ /,/g')
+          hyperfine -m 3 -M 6 -L DIR "$dirs" "{DIR}\\bin\\x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
