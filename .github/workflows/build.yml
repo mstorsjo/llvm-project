@@ -258,3 +258,38 @@ jobs:
           for i in llvm-mingw-*; do
             hyperfine -m 3 -M 6 "wine $i/bin/x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
           done
+
+  benchmark-windows:
+    runs-on: windows-latest
+    needs: [pgo, single-stage]
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          install: >-
+            unzip
+          pacboy: >-
+            hyperfine:p
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          merge-multiple: true
+      - name: Unpack
+        run: |
+          for i in llvm-mingw-patched*.zip; do
+            unzip $i
+          done
+          rm llvm-mingw-patched*.zip
+      - name: Benchmark
+        run: |
+          set -x
+          curl -LO https://sqlite.org/2025/sqlite-amalgamation-3480000.zip
+          unzip sqlite-*.zip
+          rm sqlite-*.zip
+          mv sqlite-*/sqlite3.c .
+          for i in llvm-mingw-*; do
+            hyperfine -m 3 -M 6 "$i\\bin\\x86_64-w64-mingw32-clang.exe -c sqlite3.c -O3"
+          done
