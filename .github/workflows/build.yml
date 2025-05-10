@@ -95,8 +95,8 @@ jobs:
             -DLLVM_USE_LINKER=lld \
             -DLLVM_TARGETS_TO_BUILD=X86 \
             -DLLVM_ENABLE_PROJECTS="clang" \
-            -DLLVM_LINK_LLVM_DYLIB=${{matrix.dylib}} \
-            -DLLVM_ENABLE_LTO=${{matrix.lto}} \
+            -DLLVM_LINK_LLVM_DYLIB=OFF \
+            -DLLVM_ENABLE_LTO=OFF \
             -DLLVM_BUILD_INSTRUMENTED=${{matrix.instrumentation}} \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
