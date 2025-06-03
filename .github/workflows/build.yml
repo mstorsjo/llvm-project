@@ -5,7 +5,7 @@ on:
 
 jobs:
   single-stage:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -64,7 +64,7 @@ jobs:
           hyperfine -m 3 -M 6 "bin/clang -c sqlite3.c -O3"
 
   pgo:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
       matrix:
@@ -110,7 +110,7 @@ jobs:
           rm sqlite-*.zip
           mv sqlite-*/sqlite3.c .
           bin/clang -c sqlite3.c -O3
-          llvm-profdata-18 merge -output ../profile.profdata profiles/*
+          llvm-profdata-14 merge -output ../profile.profdata profiles/*
       - name: Build PGO
         run: |
           mkdir build-pgo
