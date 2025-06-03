@@ -111,6 +111,13 @@ jobs:
           mv sqlite-*/sqlite3.c .
           bin/clang -c sqlite3.c -O3
           llvm-profdata-14 merge -output ../profile.profdata profiles/*
+      - name: Download toolchain
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20250430/llvm-mingw-20250430-ucrt-ubuntu-22.04-x86_64.tar.xz
+          tar -Jxf llvm-mingw-*.tar.xz
+          rm llvm-mingw-*.tar.xz
+          sudo mv llvm-mingw* /opt/llvm-mingw
+          echo /opt/llvm-mingw/bin >> $GITHUB_PATH
       - name: Build PGO
         run: |
           mkdir build-pgo
