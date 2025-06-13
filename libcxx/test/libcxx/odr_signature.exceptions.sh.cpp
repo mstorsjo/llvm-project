@@ -6,7 +6,7 @@
 //
 //===----------------------------------------------------------------------===//
 
-// TODO: Investigate
+// ABI tags have no effect in MSVC mode.
 // XFAIL: msvc
 
 // Test that we encode whether exceptions are supported in an ABI tag to avoid
@@ -21,14 +21,14 @@
 // -fno-exceptions
 #ifdef TU1
 #  include <__config>
-_LIBCPP_HIDE_FROM_ABI inline int f() { return 1; }
+_LIBCPP_HIDE_FROM_ABI __attribute__((noinline)) inline int f() { return 1; }
 int tu1() { return f(); }
 #endif // TU1
 
 // -fexceptions
 #ifdef TU2
 #  include <__config>
-_LIBCPP_HIDE_FROM_ABI inline int f() { return 2; }
+_LIBCPP_HIDE_FROM_ABI __attribute__((noinline)) inline int f() { return 2; }
 int tu2() { return f(); }
 #endif // TU2
 
