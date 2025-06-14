@@ -35,8 +35,8 @@ _LIBCPP_BEGIN_UNVERSIONED_NAMESPACE_STD
 // of the VCRuntime std::exception and std::bad_exception types in that mode.
 
 struct __std_exception_data {
-  char const* _What;
-  bool _DoFree;
+  char const* _What = nullptr;
+  bool _DoFree = 0;
 };
 
 class exception { // base of all library exceptions
