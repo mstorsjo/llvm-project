@@ -1,0 +1,52 @@
+name: Run libcxx/libcxxabi/libunwind tests
+on:
+  push:
+
+jobs:
+  test-libcxx:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: x86_64,  target_arch: i686    }
+          - { arch: x86_64,  target_arch: x86_64  }
+          - { arch: aarch64, target_arch: aarch64 }
+    runs-on: ${{startsWith(matrix.arch, 'a') && 'windows-11-arm' || 'windows-latest'}}
+    steps:
+      - name: Install dependencies
+        run: |
+          choco install ninja
+      - name: Download and unpack toolchain
+        run: |
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-${{matrix.arch}}.zip
+          Expand-Archive llvm-mingw-*.zip -DestinationPath .
+          del llvm-mingw-*.zip
+          mv llvm-mingw-* c:\llvm-mingw
+          echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+      - uses: actions/checkout@v4
+      - name: Build and test libcxx
+        run: |
+          mkdir build
+          cd build
+          cmake ../runtimes `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DLIBCXX_ENABLE_WERROR=YES `
+            -DLLVM_ENABLE_RUNTIMES="libcxx;libcxxabi;libunwind" `
+            -DLIBCXX_CXX_ABI=libcxxabi `
+            -DCMAKE_C_COMPILER=${{matrix.target_arch}}-w64-mingw32-clang `
+            -DCMAKE_CXX_COMPILER=${{matrix.target_arch}}-w64-mingw32-clang++ `
+            -DLIBCXXABI_ENABLE_SHARED=NO `
+            -DLIBCXX_ENABLE_STATIC_ABI_LIBRARY=YES `
+            -DLIBCXX_USE_COMPILER_RT=YES `
+            -DLIBCXXABI_USE_COMPILER_RT=YES `
+            -DLIBUNWIND_USE_COMPILER_RT=YES `
+            -DLIBCXXABI_USE_LLVM_UNWINDER=YES `
+            -DLIBCXX_EXTRA_SITE_DEFINES="__USE_MINGW_ANSI_STDIO=${{startsWith(matrix.arch, 'a') && '0' || '1'}}" `
+            -DCMAKE_INSTALL_MESSAGE=NEVER `
+            -DLIBCXX_TEST_PARAMS="optimization=speed" `
+            -DLIBCXX_ENABLE_SHARED=OFF `
+            -DLIBUNWIND_ENABLE_SHARED=OFF `
+            -DLLVM_LIT_ARGS="-v --time-tests"
+          ninja
+          ninja check-runtimes
