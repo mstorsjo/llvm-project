@@ -26,7 +26,7 @@
 //     up the OS's collation files.
 
 // https://llvm.org/PR41018
-// XFAIL: windows-dll && msvc
+// UNSUPPORTED: windows-dll && msvc
 
 #include <locale>
 #include <string>
