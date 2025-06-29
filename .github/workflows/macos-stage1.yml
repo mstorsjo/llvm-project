@@ -1,0 +1,19 @@
+name: Builds
+on:
+  push:
+    branches:
+      - '**'
+
+jobs:
+  macos-stage1:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: mstorsjo/llvm-mingw
+      - uses: actions/checkout@v4
+        with:
+          path: llvm-project
+      - name: Build
+        run: |
+          LLVM_CMAKEFLAGS="-DLLVM_ENABLE_ZSTD=OFF -DLLDB_ENABLE_PYTHON=OFF" ./build-all.sh $(pwd)/install/llvm --stage1 --llvm-only
