@@ -9,4 +9,9 @@ set(LIBUNWIND_USE_COMPILER_RT ON CACHE BOOL "")
 
 # Without this flag, 'long double' (which is 80 bit on x86 mingw, but
 # 64 bit in MSVC) isn't handled correctly in printf.
-set(LIBCXX_EXTRA_SITE_DEFINES "__USE_MINGW_ANSI_STDIO=1" CACHE STRING "")
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "ARM.*" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+  # On aarch64, long doubles use the same ABI as in MSVC mode, so we don't need
+  # to enable the MinGW specific stdio routines.
+else()
+  set(LIBCXX_EXTRA_SITE_DEFINES "__USE_MINGW_ANSI_STDIO=1" CACHE STRING "")
+endif()
