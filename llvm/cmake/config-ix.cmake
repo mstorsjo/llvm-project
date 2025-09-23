@@ -524,6 +524,7 @@ endif()
 
 # By default, we target the host, but this can be overridden at CMake
 # invocation time.
+message("CMAKE_HOST_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 include(GetHostTriple)
 get_host_triple(LLVM_INFERRED_HOST_TRIPLE)
 
