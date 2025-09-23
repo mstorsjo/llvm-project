@@ -31,7 +31,7 @@ jobs:
         with:
           max-size: 1000M
           key: llvm-test-win-${{matrix.arch}}
-      - name: Build the project and unittests
+      - name: Configure the build
         run: |
           mkdir build
           cd build
@@ -49,6 +49,9 @@ jobs:
             -DCMAKE_C_COMPILER_LAUNCHER=ccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache `
             -DLLVM_LIT_ARGS="-v --time-tests"
+      - name: Build the project and unittests
+        run: |
+          cd build
           ninja test-depends
           cp c:\llvm-mingw\bin\libc++.dll bin
           cp c:\llvm-mingw\bin\libunwind.dll bin
