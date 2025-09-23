@@ -12,6 +12,8 @@ set(LIBUNWIND_USE_COMPILER_RT ON CACHE BOOL "")
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "ARM.*" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
   # On aarch64, long doubles use the same ABI as in MSVC mode, so we don't need
   # to enable the MinGW specific stdio routines.
+  message("aarch64, not enabling __USE_MINGW_ANSI_STDIO")
 else()
+  message("x86, enabling __USE_MINGW_ANSI_STDIO=1")
   set(LIBCXX_EXTRA_SITE_DEFINES "__USE_MINGW_ANSI_STDIO=1" CACHE STRING "")
 endif()
