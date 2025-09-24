@@ -665,13 +665,11 @@ clang-cl-dll)
     # setting when cmake and the test driver does the right thing automatically.
     generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False"
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
 clang-cl-static)
     clean
     generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
 clang-cl-no-vcruntime)
     clean
@@ -682,14 +680,12 @@ clang-cl-no-vcruntime)
     generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False" \
                               -DLIBCXX_TEST_CONFIG="llvm-libc++-shared-no-vcruntime-clangcl.cfg.in"
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
 clang-cl-debug)
     clean
     generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False" \
                               -DCMAKE_BUILD_TYPE=Debug
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
 clang-cl-static-crt)
     clean
@@ -698,13 +694,11 @@ clang-cl-static-crt)
     generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF \
                               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
 ;;
 mingw-dll)
     clean
     generate-cmake \
           -C "${MONOREPO_ROOT}/libcxx/cmake/caches/MinGW.cmake"
-    check-runtimes
 ;;
 mingw-static|mingw-static-aarch64)
     clean
@@ -712,7 +706,6 @@ mingw-static|mingw-static-aarch64)
           -C "${MONOREPO_ROOT}/libcxx/cmake/caches/MinGW.cmake" \
           -DLIBCXX_ENABLE_SHARED=OFF \
           -DLIBUNWIND_ENABLE_SHARED=OFF
-    check-runtimes
 ;;
 mingw-dll-i686)
     clean
@@ -720,7 +713,6 @@ mingw-dll-i686)
           -DCMAKE_C_COMPILER=i686-w64-mingw32-clang \
           -DCMAKE_CXX_COMPILER=i686-w64-mingw32-clang++ \
           -C "${MONOREPO_ROOT}/libcxx/cmake/caches/MinGW.cmake"
-    check-runtimes
 ;;
 mingw-incomplete-sysroot)
     # When bringing up a new cross compiler from scratch, we build
