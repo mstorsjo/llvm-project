@@ -9,6 +9,8 @@ set(LIBUNWIND_USE_COMPILER_RT ON CACHE BOOL "")
 
 # Without this flag, 'long double' (which is 80 bit on x86 mingw, but
 # 64 bit in MSVC) isn't handled correctly in printf.
+message("CMAKE_SYSTEM_PROCESSOR ${CMAKE_SYSTEM_PROCESSOR}")
+message("CMAKE_HOST_SYSTEM_PROCESSOR ${CMAKE_HOST_SYSTEM_PROCESSOR}")
 if (CMAKE_SYSTEM_PROCESSOR MATCHES "ARM.*" OR CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
   # On aarch64, long doubles use the same ABI as in MSVC mode, so we don't need
   # to enable the MinGW specific stdio routines.
