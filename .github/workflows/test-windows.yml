@@ -52,6 +52,9 @@ jobs:
         run: |
           cd build
           ninja check-lit
-      - name: Dummy second step
+      - name: Run specifically one test
+        env:
+          LIT_USE_INTERNAL_SHELL: true
         run: |
-          ls
+          cd build/utils/lit/tests
+          python ..\..\..\..\llvm\utils\lit\lit.py -a Inputs\shtest-readfile\file-does-not-exist.txt
