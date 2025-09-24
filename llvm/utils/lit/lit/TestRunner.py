@@ -729,8 +729,13 @@ def _expandLateSubstitutions(cmd, arguments, cwd):
 
         def _replaceReadFile(match):
             filePath = match.group(1)
+            print("filePath " + filePath)
             if not os.path.isabs(filePath):
+                print("filePath is not absolute")
                 filePath = os.path.join(cwd, filePath)
+                print("filePath " + filePath)
+            else:
+                print("filePath is absolute")
             try:
                 with open(filePath) as fileHandle:
                     return fileHandle.read()
