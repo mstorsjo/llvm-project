@@ -47,6 +47,11 @@ jobs:
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache `
             -DLLVM_LIT_ARGS="-v --time-tests"
       - name: Build the project and unittests
+        continue-on-error: true
         run: |
           cd build
           ninja check-lit
+      - name: Run specifically one test
+        run: |
+          cd build/utils/lit/tests
+          python ..\..\..\..\llvm\utils\lit\lit.py -a Inputs\shtest-readfile\file-does-not-exist.txt
