@@ -55,6 +55,11 @@ jobs:
       - name: Run specifically one test
         env:
           LIT_USE_INTERNAL_SHELL: true
+        shell: cmd
         run: |
-          cd build/utils/lit/tests
+          cd build\utils\lit\tests
+          where python
+          python --version
           python ..\..\..\..\llvm\utils\lit\lit.py -a Inputs\shtest-readfile\file-does-not-exist.txt
+          C:\hostedtoolcache\windows\Python\3.13.7\x64\python3.exe ..\..\..\..\llvm\utils\lit\lit.py -a Inputs\shtest-readfile\file-does-not-exist.txt
+          c:\llvm-mingw\python\bin\python3.exe ..\..\..\..\llvm\utils\lit\lit.py -a Inputs\shtest-readfile\file-does-not-exist.txt
