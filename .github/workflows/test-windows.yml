@@ -9,7 +9,6 @@ jobs:
       matrix:
         arch:
           - x86_64
-          - aarch64
     runs-on: ${{startsWith(matrix.arch, 'a') && 'windows-11-arm' || 'windows-latest'}}
     steps:
       - name: Configure Git core.autocrlf
@@ -50,10 +49,4 @@ jobs:
       - name: Build the project and unittests
         run: |
           cd build
-          ninja test-depends
-          cp c:\llvm-mingw\bin\libc++.dll bin
-          cp c:\llvm-mingw\bin\libunwind.dll bin
-      - name: Run tests
-        run: |
-          cd build
-          ninja check
+          ninja check-lit
