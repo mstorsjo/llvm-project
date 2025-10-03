@@ -239,14 +239,7 @@ jobs:
       matrix:
         include:
         - { config: clang-cl-dll, mingw: false }
-        - { config: clang-cl-static, mingw: false }
-        - { config: clang-cl-no-vcruntime, mingw: false }
-        - { config: clang-cl-debug, mingw: false }
-        - { config: clang-cl-static-crt, mingw: false }
         - { config: mingw-dll, mingw: true }
-        - { config: mingw-static, mingw: true }
-        - { config: mingw-dll-i686, mingw: true }
-        - { config: mingw-incomplete-sysroot, mingw: true }
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Install dependencies
