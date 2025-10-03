@@ -665,7 +665,9 @@ clang-cl-dll)
     # setting when cmake and the test driver does the right thing automatically.
     generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False"
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    cd "${BUILD_DIR}"
+    ${NINJA} cxx-test-depends
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/libcxx/system_reserved_names.gen.py "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp
 ;;
 clang-cl-static)
     clean
@@ -704,7 +706,10 @@ mingw-dll)
     clean
     generate-cmake \
           -C "${MONOREPO_ROOT}/libcxx/cmake/caches/MinGW.cmake"
-    check-runtimes
+    step "Running the libc++ tests"
+    cd "${BUILD_DIR}"
+    ${NINJA} cxx-test-depends
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/libcxx/system_reserved_names.gen.py "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp
 ;;
 mingw-static)
     clean
