@@ -665,13 +665,17 @@ clang-cl-dll)
     # setting when cmake and the test driver does the right thing automatically.
     generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False"
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    cd "${BUILD_DIR}"
+    ${NINJA} cxx-test-depends
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp
 ;;
 clang-cl-static)
     clean
     generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    cd "${BUILD_DIR}"
+    ${NINJA} cxx-test-depends
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp
 ;;
 clang-cl-no-vcruntime)
     clean
@@ -682,14 +686,18 @@ clang-cl-no-vcruntime)
     generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False" \
                               -DLIBCXX_TEST_CONFIG="llvm-libc++-shared-no-vcruntime-clangcl.cfg.in"
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    cd "${BUILD_DIR}"
+    ${NINJA} cxx-test-depends
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp
 ;;
 clang-cl-debug)
     clean
     generate-cmake-libcxx-win -DLIBCXX_TEST_PARAMS="enable_experimental=False" \
                               -DCMAKE_BUILD_TYPE=Debug
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    cd "${BUILD_DIR}"
+    ${NINJA} cxx-test-depends
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp
 ;;
 clang-cl-static-crt)
     clean
@@ -698,7 +706,9 @@ clang-cl-static-crt)
     generate-cmake-libcxx-win -DLIBCXX_ENABLE_SHARED=OFF \
                               -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
     step "Running the libc++ tests"
-    ${NINJA} -vC "${BUILD_DIR}" check-cxx
+    cd "${BUILD_DIR}"
+    ${NINJA} cxx-test-depends
+    python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp
 ;;
 mingw-dll)
     clean
