@@ -139,7 +139,7 @@ function generate-cmake-base() {
           -DLIBCXXABI_ENABLE_WERROR=YES \
           -DLIBUNWIND_ENABLE_WERROR=YES \
           -DCMAKE_INSTALL_MESSAGE=NEVER \
-          -DLLVM_LIT_ARGS="-sv --xunit-xml-output test-results.xml --timeout=1500 --time-tests" \
+          -DLLVM_LIT_ARGS="-v --xunit-xml-output test-results.xml --timeout=1500 --time-tests" \
           "${@}"
 }
 
