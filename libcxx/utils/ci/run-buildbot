@@ -667,7 +667,12 @@ clang-cl-dll)
     step "Running the libc++ tests"
     cd "${BUILD_DIR}"
     ${NINJA} cxx-test-depends
-    python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp
+    i=0
+    while [ $i -lt 100 ]; do
+        echo $i
+        python bin/llvm-lit.py -a "${MONOREPO_ROOT}"/libcxx/test/std/input.output/filesystems/fs.op.funcs/fs.op.proximate/proximate.pass.cpp || exit 1
+        i=$(($i+1))
+    done
 ;;
 clang-cl-static)
     clean
