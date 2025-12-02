@@ -27,7 +27,7 @@ jobs:
         run: |
           choco install -y ninja
           # We need a newer llvm-lib, in order to build the OpenMP interface library
-          choco install -y llvm --version=17.0.6
+          choco install -y llvm --version=21.1.0
       - uses: actions/checkout@v4
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
@@ -109,7 +109,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install llvm-mingw
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20231128/llvm-mingw-20231128-ucrt-x86_64.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20251118/llvm-mingw-20251118-ucrt-x86_64.zip
           powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
@@ -152,7 +152,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install llvm-mingw
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20231128/llvm-mingw-20231128-ucrt-x86_64.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20251118/llvm-mingw-20251118-ucrt-x86_64.zip
           powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
