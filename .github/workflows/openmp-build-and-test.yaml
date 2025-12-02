@@ -21,7 +21,14 @@ permissions:
 
 jobs:
   llvm-mingw:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: i686, asmflag: }
+          - { arch: x86_64, asmflag: -m64 }
+          - { arch: aarch64 }
+    runs-on: ${{startsWith(matrix.arch, 'a') && 'windows-11-arm' || 'windows-latest'}}
     steps:
       - name: Install dependencies
         run: |
@@ -29,36 +36,22 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install llvm-mingw
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20231128/llvm-mingw-20231128-ucrt-x86_64.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-${{matrix.arch}}.zip
           powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
           echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
-        with:
-          max-size: 700M
-          key: llvm-mingw
-          variant: ccache
-      - name: Build Clang and test tools
+      - name: Build test executables
         run: |
-          mkdir build
-          cd build
+          mkdir build-tools
+          cd build-tools
           cmake ../llvm `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang;compiler-rt" `
-            -DCLANG_DEFAULT_RTLIB=compiler-rt `
-            -DCLANG_DEFAULT_UNWINDLIB=libunwind `
-            -DCLANG_DEFAULT_CXX_STDLIB=libc++ `
-            -DCLANG_DEFAULT_LINKER=lld `
-            -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE `
-            -DSANITIZER_CXX_ABI=libc++ `
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          ninja not FileCheck clang compiler-rt
-          echo "$PWD\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++
+          ninja not FileCheck
           echo "LLVM_TOOLS=$PWD\bin" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
       - name: Build and test OpenMP
         run: |
@@ -73,5 +66,5 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang++ `
             -DCMAKE_ASM_MASM_COMPILER=llvm-ml `
             -DOPENMP_LIT_ARGS="-v --time-tests --show-unsupported" `
-            -DLIBOMP_ASMFLAGS=-m64
+            -DLIBOMP_ASMFLAGS=${{matrix.asmflag}}
           ninja check-openmp
