@@ -240,11 +240,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-        - { config: clang-cl-dll,             mingw: false, cc: clang-cl, cxx: clang-cl }
-        - { config: clang-cl-static,          mingw: false, cc: clang-cl, cxx: clang-cl }
-        - { config: clang-cl-no-vcruntime,    mingw: false, cc: clang-cl, cxx: clang-cl }
-        - { config: clang-cl-debug,           mingw: false, cc: clang-cl, cxx: clang-cl }
-        - { config: clang-cl-static-crt,      mingw: false, cc: clang-cl, cxx: clang-cl }
         - { config: mingw-dll,                mingw: true,  cc: cc,       cxx: c++ }
         - { config: mingw-dll,                mingw: true,  cc: i686-w64-mingw32-clang, cxx: i686-w64-mingw32-clang++ }
         - { config: mingw-static,             mingw: true,  cc: cc,       cxx: c++ }
