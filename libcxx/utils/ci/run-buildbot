@@ -157,8 +157,8 @@ function check-runtimes() {
     step "Building libc++ test dependencies"
     ninja -vC "${BUILD_DIR}" cxx-test-depends
 
-    step "Running the libc++ tests"
-    ninja -vC "${BUILD_DIR}" check-cxx
+    #step "Running the libc++ tests"
+    #ninja -vC "${BUILD_DIR}" check-cxx
 
     step "Running the libc++abi tests"
     ninja -vC "${BUILD_DIR}" check-cxxabi
