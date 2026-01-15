@@ -160,10 +160,6 @@ _GCC_specific_handler(PEXCEPTION_RECORD ms_exc, PVOID frame, PCONTEXT ms_ctx,
       _LIBUNWIND_ABORT("Personality continued unwind at the target frame!");
     return ExceptionContinueSearch;
   case _URC_HANDLER_FOUND:
-    // If we were called by __libunwind_seh_personality(), indicate that
-    // a handler was found; otherwise, initiate phase 2 by unwinding.
-    if (ours && ms_exc->NumberParameters > 1)
-      return 4 /* ExceptionExecuteHandler in mingw */;
     // This should never happen in phase 2.
     if (IS_UNWINDING(ms_exc->ExceptionFlags))
       _LIBUNWIND_ABORT("Personality indicated exception handler in phase 2!");
@@ -178,11 +174,6 @@ _GCC_specific_handler(PEXCEPTION_RECORD ms_exc, PVOID frame, PCONTEXT ms_ctx,
                 disp->HistoryTable);
     _LIBUNWIND_ABORT("RtlUnwindEx() failed");
   case _URC_INSTALL_CONTEXT: {
-    // If we were called by __libunwind_seh_personality(), indicate that
-    // a handler was found; otherwise, it's time to initiate a collided
-    // unwind to the target.
-    if (ours && !IS_UNWINDING(ms_exc->ExceptionFlags) && ms_exc->NumberParameters > 1)
-      return 4 /* ExceptionExecuteHandler in mingw */;
     // This should never happen in phase 1.
     if (!IS_UNWINDING(ms_exc->ExceptionFlags))
       _LIBUNWIND_ABORT("Personality installed context during phase 1!");
@@ -269,7 +260,6 @@ __libunwind_seh_personality(int version, _Unwind_Action state,
   switch (ms_act) {
   case ExceptionContinueExecution: return _URC_END_OF_STACK;
   case ExceptionContinueSearch: return _URC_CONTINUE_UNWIND;
-  case 4 /*ExceptionExecuteHandler*/:
     return phase2 ? _URC_INSTALL_CONTEXT : _URC_HANDLER_FOUND;
   default:
     return phase2 ? _URC_FATAL_PHASE2_ERROR : _URC_FATAL_PHASE1_ERROR;
