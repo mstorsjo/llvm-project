@@ -59,8 +59,8 @@ jobs:
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DOPENMP_LLVM_TOOLS_DIR="$Env:LLVM_TOOLS" `
-            -DCMAKE_C_COMPILER=clang `
-            -DCMAKE_CXX_COMPILER=clang++ `
+            -DCMAKE_C_COMPILER=${{matrix.arch}}-w64-mingw32-clang `
+            -DCMAKE_CXX_COMPILER=${{matrix.arch}}-w64-mingw32-clang++ `
             -DCMAKE_ASM_MASM_COMPILER=llvm-ml `
             -DOPENMP_LIT_ARGS="-v --time-tests --show-unsupported" `
             -DLIBOMP_ASMFLAGS=${{matrix.asmflag}}
