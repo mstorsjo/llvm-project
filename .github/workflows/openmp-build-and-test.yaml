@@ -31,13 +31,7 @@ jobs:
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
           echo "c:\llvm-mingw\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
-      - name: Setup ccache
-        uses: hendrikmuhs/ccache-action@v1
-        with:
-          max-size: 700M
-          key: llvm-mingw
-          variant: ccache
-      - name: Build Clang and test tools
+      - name: Build test tools
         run: |
           mkdir build
           cd build
@@ -45,17 +39,9 @@ jobs:
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang;compiler-rt" `
-            -DCLANG_DEFAULT_RTLIB=compiler-rt `
-            -DCLANG_DEFAULT_UNWINDLIB=libunwind `
-            -DCLANG_DEFAULT_CXX_STDLIB=libc++ `
-            -DCLANG_DEFAULT_LINKER=lld `
-            -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE `
-            -DSANITIZER_CXX_ABI=libc++ `
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          ninja not FileCheck clang compiler-rt
-          echo "$PWD\bin" | Out-File -FilePath $Env:GITHUB_PATH -Encoding utf8 -Append
+            -DCMAKE_C_COMPILER=clang `
+            -DCMAKE_CXX_COMPILER=clang++
+          ninja not FileCheck
           echo "LLVM_TOOLS=$PWD\bin" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
       - name: Build and test OpenMP
         run: |
