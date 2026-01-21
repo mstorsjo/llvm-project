@@ -23,9 +23,6 @@ jobs:
   llvm-mingw-separate:
     runs-on: windows-latest
     steps:
-      - name: Install dependencies
-        run: |
-          choco install -y ninja
       - uses: actions/checkout@v4
       - name: Install llvm-mingw
         run: |
