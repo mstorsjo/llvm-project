@@ -21,12 +21,19 @@ permissions:
 
 jobs:
   llvm-mingw-separate:
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { arch: i686, asmflag: }
+          - { arch: x86_64, asmflag: -m64 }
+          - { arch: aarch64 }
+    runs-on: ${{startsWith(matrix.arch, 'a') && 'windows-11-arm' || 'windows-latest'}}
     steps:
       - uses: actions/checkout@v4
       - name: Install llvm-mingw
         run: |
-          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-x86_64.zip
+          curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/nightly/llvm-mingw-nightly-ucrt-${{matrix.arch}}.zip
           powershell Expand-Archive llvm-mingw*.zip -DestinationPath .
           del llvm-mingw*.zip
           mv llvm-mingw* c:\llvm-mingw
@@ -56,5 +63,5 @@ jobs:
             -DCMAKE_CXX_COMPILER=clang++ `
             -DCMAKE_ASM_MASM_COMPILER=llvm-ml `
             -DOPENMP_LIT_ARGS="-v --time-tests --show-unsupported" `
-            -DLIBOMP_ASMFLAGS=-m64
+            -DLIBOMP_ASMFLAGS=${{matrix.asmflag}}
           ninja check-openmp
