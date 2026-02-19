@@ -52,7 +52,7 @@ jobs:
           echo "LLVM_TOOLS=$PWD\bin" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
       - name: Build and test OpenMP
         run: |
-          cd openmp
+          cd runtimes
           mkdir build
           cd build
           cmake .. `
@@ -62,6 +62,7 @@ jobs:
             -DCMAKE_C_COMPILER=${{matrix.arch}}-w64-mingw32-clang `
             -DCMAKE_CXX_COMPILER=${{matrix.arch}}-w64-mingw32-clang++ `
             -DCMAKE_ASM_MASM_COMPILER=llvm-ml `
+            -DLLVM_ENABLE_RUNTIMES="openmp" `
             -DOPENMP_LIT_ARGS="-v --time-tests --show-unsupported" `
             -DLIBOMP_ASMFLAGS=${{matrix.asmflag}}
           ninja check-openmp
