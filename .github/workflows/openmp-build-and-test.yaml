@@ -50,7 +50,7 @@ jobs:
             -DCMAKE_C_COMPILER=clang `
             -DCMAKE_CXX_COMPILER=clang++
           ninja not FileCheck
-          echo "LLVM_TOOLS=$PWD\bin" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
+          echo "LLVM_BUILD=$PWD" | Out-File -FilePath $Env:GITHUB_ENV -Encoding utf8 -Append
       - name: Build and test OpenMP
         run: |
           cd runtimes
@@ -59,7 +59,7 @@ jobs:
           cmake .. `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
-            -DOPENMP_LLVM_TOOLS_DIR="$Env:LLVM_TOOLS" `
+            -DLLVM_BINARY_DIR="$Env:LLVM_BUILD" `
             -DCMAKE_C_COMPILER=${{matrix.arch}}-w64-mingw32-clang `
             -DCMAKE_CXX_COMPILER=${{matrix.arch}}-w64-mingw32-clang++ `
             -DCMAKE_ASM_MASM_COMPILER=llvm-ml `
