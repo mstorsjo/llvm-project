@@ -1,0 +1,19 @@
+name: Inspect _MSC_VER
+on:
+  push:
+
+jobs:
+  check:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .
+      - name: Set up the MSVC dev environment
+        uses: ilammy/msvc-dev-cmd@v1
+      - name: Build and test
+        shell: cmd
+        run: |
+          where clang
+          clang -v
+          clang -c msc_ver.c
