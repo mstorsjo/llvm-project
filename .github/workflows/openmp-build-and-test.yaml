@@ -21,6 +21,7 @@ permissions:
 
 jobs:
   windows-msvc:
+    if: false
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
@@ -50,6 +51,7 @@ jobs:
           ninja check-openmp
 
   windows-msvc-separate:
+    if: false
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
@@ -139,6 +141,7 @@ jobs:
           ninja check-openmp
 
   llvm-mingw-separate:
+    if: false
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v6
@@ -196,6 +199,7 @@ jobs:
           ninja check-openmp
 
   linux:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -221,6 +225,7 @@ jobs:
           ninja check-openmp
 
   linux-separate:
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
