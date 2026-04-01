@@ -43,7 +43,8 @@ jobs:
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang;openmp" `
+            -DLLVM_ENABLE_PROJECTS="clang" `
+            -DLLVM_ENABLE_RUNTIMES="openmp" `
             -DCMAKE_C_COMPILER=clang-cl `
             -DCMAKE_CXX_COMPILER=clang-cl `
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
@@ -126,7 +127,8 @@ jobs:
             -G Ninja `
             -DCMAKE_BUILD_TYPE=Release `
             -DLLVM_TARGETS_TO_BUILD=X86 `
-            -DLLVM_ENABLE_PROJECTS="clang;compiler-rt;openmp" `
+            -DLLVM_ENABLE_PROJECTS="clang;compiler-rt" `
+            -DLLVM_ENABLE_RUNTIMES="openmp" `
             -DCLANG_DEFAULT_RTLIB=compiler-rt `
             -DCLANG_DEFAULT_UNWINDLIB=libunwind `
             -DCLANG_DEFAULT_CXX_STDLIB=libc++ `
@@ -217,7 +219,8 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=Release \
             -DLLVM_TARGETS_TO_BUILD=X86 \
-            -DLLVM_ENABLE_PROJECTS="clang;openmp" \
+            -DLLVM_ENABLE_PROJECTS="clang" \
+            -DLLVM_ENABLE_RUNTIMES="openmp" \
             -DOPENMP_ENABLE_LIBOMPTARGET=OFF \
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" \
             -DCMAKE_C_COMPILER_LAUNCHER=ccache \
