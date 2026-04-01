@@ -345,7 +345,7 @@ if(LLVM_CCACHE_BUILD)
         set(CCACHE_PROGRAM "${CCACHE_PROGRAM} cache_dir=${LLVM_CCACHE_DIR}")
       endif()
 
-    if(NOT CMAKE_HOST_WIN32)
+    if(NOT CMAKE_HOST_WIN32 OR CMAKE_GENERATOR MATCHES "Ninja")
       set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
     else()
       # RULE_LAUNCH_COMPILE should work with Ninja but currently has issues
