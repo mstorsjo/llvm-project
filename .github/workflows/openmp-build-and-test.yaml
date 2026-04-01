@@ -26,8 +26,6 @@ jobs:
       - name: Install dependencies
         run: |
           choco install -y ninja
-          # We need a newer llvm-lib, in order to build the OpenMP interface library
-          choco install -y llvm --version=19.1.0
       - uses: actions/checkout@v4
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
