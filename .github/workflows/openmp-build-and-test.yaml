@@ -134,7 +134,6 @@ jobs:
             -DRUNTIMES_openmp_CMAKE_ASM_MASM_COMPILER=llvm-ml `
             -DLIBOMP_ASMFLAGS=-m64 `
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
-            -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON `
             -DCMAKE_C_COMPILER_LAUNCHER=ccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           ninja compiler-rt
@@ -173,7 +172,6 @@ jobs:
             -DCLANG_DEFAULT_LINKER=lld `
             -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE `
             -DSANITIZER_CXX_ABI=libc++ `
-            -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON `
             -DCMAKE_C_COMPILER_LAUNCHER=ccache `
             -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
           ninja not FileCheck clang compiler-rt
