@@ -113,6 +113,9 @@ jobs:
           max-size: 700M
           key: llvm-mingw
           variant: ccache
+      - name: Configure ccache
+        run: |
+          ccache -o sloppiness=pch_defines,time_macros
       - name: Build and test
         run: |
           mkdir build
