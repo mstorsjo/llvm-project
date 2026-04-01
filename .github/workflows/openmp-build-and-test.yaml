@@ -130,6 +130,7 @@ jobs:
             -DCOMPILER_RT_USE_BUILTINS_LIBRARY=TRUE `
             -DSANITIZER_CXX_ABI=libc++ `
             -DRUNTIMES_x86_64-w64-windows-gnu_CMAKE_ASM_MASM_COMPILER=llvm-ml `
+            -DRUNTIMES_openmp_CMAKE_ASM_MASM_COMPILER=llvm-ml `
             -DLIBOMP_ASMFLAGS=-m64 `
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
             -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON `
