@@ -314,50 +314,60 @@ if(LLVM_CCACHE_BUILD)
   if(CCACHE_PROGRAM)
     set(LLVM_CCACHE_MAXSIZE "" CACHE STRING "Size of ccache")
     set(LLVM_CCACHE_DIR "" CACHE STRING "Directory to keep ccached data")
-    set(LLVM_CCACHE_PARAMS "CCACHE_CPP2=yes CCACHE_HASHDIR=yes CCACHE_SLOPPINESS=pch_defines,time_macros"
+    set(LLVM_CCACHE_PARAMS "run_second_cpp=true hash_dir=true sloppiness=pch_defines,time_macros"
         CACHE STRING "Parameters to pass through to ccache")
+    if (LLVM_CCACHE_PARAMS STREQUAL "CCACHE_CPP2=yes CCACHE_HASHDIR=yes CCACHE_SLOPPINESS=pch_defines,time_macros")
+      message("Upgrading LLVM_CCACHE_PARAMS to new form")
+      set(LLVM_CCACHE_PARAMS "run_second_cpp=true hash_dir=true sloppiness=pch_defines,time_macros")
+    endif()
 
-    if(NOT CMAKE_HOST_WIN32)
-      set(CCACHE_PROGRAM "${LLVM_CCACHE_PARAMS} ${CCACHE_PROGRAM}")
-      if (LLVM_CCACHE_MAXSIZE)
-        set(CCACHE_PROGRAM "CCACHE_MAXSIZE=${LLVM_CCACHE_MAXSIZE} ${CCACHE_PROGRAM}")
-      endif()
-      if (LLVM_CCACHE_DIR)
-        set(CCACHE_PROGRAM "CCACHE_DIR=${LLVM_CCACHE_DIR} ${CCACHE_PROGRAM}")
-      endif()
-      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
-
-      if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-        # ccache with PCH can lead to false-positives when only a macro
-        # definition changes with non-Clang compilers, because macro definitions
-        # are not compared in preprocessed mode.
-        # See: https://github.com/ccache/ccache/issues/1668
-        if(NOT DEFINED CMAKE_DISABLE_PRECOMPILE_HEADERS)
-          message(NOTICE "Using ccache with precompiled headers with non-Clang "
-            "compilers is not supported. CMAKE_DISABLE_PRECOMPILE_HEADERS will be set to ON. "
-            "Pass -DCMAKE_DISABLE_PRECOMPILE_HEADERS=OFF to override this.")
-          set(CMAKE_DISABLE_PRECOMPILE_HEADERS "ON")
-        elseif(NOT CMAKE_DISABLE_PRECOMPILE_HEADERS)
-          message(WARNING "Using ccache with precompiled headers with non-Clang "
-            "compilers is not supported.")
+      string(FIND "${LLVM_CCACHE_PARAMS}" "CCACHE_" out)
+      if("${out}" EQUAL -1)
+        # New form; options in the form of the ccache config itself. These can
+        # be passed on the command line, after the ccache executable, before
+        # the program to be executed.
+        set(CCACHE_PROGRAM "${CCACHE_PROGRAM} ${LLVM_CCACHE_PARAMS}")
+      else()
+        # Old form; options in the form of env variables. These can be passed
+        # on the command line before the ccache executable, which the shell
+        # sets before executing the command. This approach does not work
+        # on Windows.
+        if(NOT CMAKE_HOST_WIN32)
+          set(CCACHE_PROGRAM "${LLVM_CCACHE_PARAMS} ${CCACHE_PROGRAM}")
+        else()
+          message(FATAL_ERROR "Ccache configuration through CMake with env variables is not supported on Windows; clear the LLVM_CCACHE_PARAMS cmake option.")
         endif()
       endif()
+      if (LLVM_CCACHE_MAXSIZE)
+        set(CCACHE_PROGRAM "${CCACHE_PROGRAM} max_size=${LLVM_CCACHE_MAXSIZE}")
+      endif()
+      if (LLVM_CCACHE_DIR)
+        set(CCACHE_PROGRAM "${CCACHE_PROGRAM} cache_dir=${LLVM_CCACHE_DIR}")
+      endif()
+
+    if(NOT CMAKE_HOST_WIN32)
+      set_property(GLOBAL PROPERTY RULE_LAUNCH_COMPILE ${CCACHE_PROGRAM})
     else()
-      # Until a way to reliably configure ccache on Windows is found,
-      # disable precompiled headers for Windows + ccache builds
-      if(NOT CMAKE_DISABLE_PRECOMPILE_HEADERS)
-        message(WARNING "Using ccache with precompiled headers on Windows is currently not supported.
-          CMAKE_DISABLE_PRECOMPILE_HEADERS will be set to ON.")
-        set(CMAKE_DISABLE_PRECOMPILE_HEADERS "ON")
-      endif()
-      if(LLVM_CCACHE_MAXSIZE OR LLVM_CCACHE_DIR OR
-         NOT LLVM_CCACHE_PARAMS MATCHES "CCACHE_CPP2=yes CCACHE_HASHDIR=yes CCACHE_SLOPPINESS=pch_defines,time_macros")
-        message(FATAL_ERROR "Ccache configuration through CMake is not supported on Windows. Please use environment variables.")
-      endif()
       # RULE_LAUNCH_COMPILE should work with Ninja but currently has issues
       # with cmd.exe and some MSVC tools other than cl.exe
       set(CMAKE_C_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
       set(CMAKE_CXX_COMPILER_LAUNCHER ${CCACHE_PROGRAM})
+    endif()
+
+    if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      # ccache with PCH can lead to false-positives when only a macro
+      # definition changes with non-Clang compilers, because macro definitions
+      # are not compared in preprocessed mode.
+      # See: https://github.com/ccache/ccache/issues/1668
+      if(NOT DEFINED CMAKE_DISABLE_PRECOMPILE_HEADERS)
+        message(NOTICE "Using ccache with precompiled headers with non-Clang "
+          "compilers is not supported. CMAKE_DISABLE_PRECOMPILE_HEADERS will be set to ON. "
+          "Pass -DCMAKE_DISABLE_PRECOMPILE_HEADERS=OFF to override this.")
+        set(CMAKE_DISABLE_PRECOMPILE_HEADERS "ON")
+      elseif(NOT CMAKE_DISABLE_PRECOMPILE_HEADERS)
+        message(WARNING "Using ccache with precompiled headers with non-Clang "
+          "compilers is not supported.")
+      endif()
     endif()
   else()
     message(FATAL_ERROR "Unable to find the program ccache. Set LLVM_CCACHE_BUILD to OFF")
