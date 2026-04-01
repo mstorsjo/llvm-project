@@ -26,7 +26,7 @@ jobs:
       - name: Install dependencies
         run: |
           choco install -y ninja
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
       - name: Setup ccache
@@ -58,7 +58,7 @@ jobs:
       - name: Install dependencies
         run: |
           choco install -y ninja
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up the MSVC dev environment
         uses: ilammy/msvc-dev-cmd@v1
       - name: Setup ccache
@@ -106,7 +106,7 @@ jobs:
       - name: Install dependencies
         run: |
           choco install -y ninja
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install llvm-mingw
         run: |
           curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240917/llvm-mingw-20240917-ucrt-x86_64.zip
@@ -150,7 +150,7 @@ jobs:
       - name: Install dependencies
         run: |
           choco install -y ninja
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Install llvm-mingw
         run: |
           curl -LO https://github.com/mstorsjo/llvm-mingw/releases/download/20240917/llvm-mingw-20240917-ucrt-x86_64.zip
@@ -207,7 +207,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install ninja-build
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
@@ -235,7 +235,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get update && sudo apt-get install ninja-build
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Setup ccache
         uses: hendrikmuhs/ccache-action@v1
         with:
