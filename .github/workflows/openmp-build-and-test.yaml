@@ -113,9 +113,6 @@ jobs:
           max-size: 700M
           key: llvm-mingw
           variant: ccache
-      - name: Configure ccache
-        run: |
-          ccache -o sloppiness=pch_defines,time_macros
       - name: Build and test
         run: |
           mkdir build
@@ -135,8 +132,7 @@ jobs:
             -DRUNTIMES_CMAKE_ARGS="-DCMAKE_ASM_MASM_COMPILER=llvm-ml" `
             -DLIBOMP_ASMFLAGS=-m64 `
             -DLLVM_LIT_ARGS="-v --time-tests --show-unsupported" `
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -DLLVM_CCACHE_BUILD=ON
           ninja compiler-rt
           ninja check-openmp
 
