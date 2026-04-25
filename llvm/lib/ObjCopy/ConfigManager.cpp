@@ -80,6 +80,7 @@ Expected<const WasmConfig &> ConfigManager::getWasmConfig() const {
       !Common.SymbolsToRename.empty() || Common.GapFill != 0 ||
       Common.PadTo != 0 || Common.ChangeSectionLMAValAll != 0 ||
       !Common.ChangeSectionAddress.empty() || !Common.ExtractSection.empty() ||
+      Common.DecompressDebugSections ||
       Common.CompressionType != DebugCompressionType::None ||
       !Common.compressSections.empty())
     return createStringError(llvm::errc::invalid_argument,
