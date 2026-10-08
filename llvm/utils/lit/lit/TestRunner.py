@@ -821,7 +821,6 @@ def _executeShCmd(cmd, shenv, results, timeoutHelper):
             old_umask = -1
             if cmd_shenv.umask != -1:
                 old_umask = os.umask(cmd_shenv.umask)
-            print(args)
             procs.append(
                 subprocess.Popen(
                     args,
