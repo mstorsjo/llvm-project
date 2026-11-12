@@ -1311,7 +1311,7 @@ bool ARMConstantIslands::findAvailableWater(CPUser &U, unsigned UserOffset,
     if (isWaterInRange(UserOffset, WaterBB, U, Growth) &&
         (WaterBB->getNumber() < U.HighWaterMark->getNumber() ||
          NewWaterList.count(WaterBB) || WaterBB == U.MI->getParent()) &&
-        Growth < BestGrowth) {
+        (CloserWater || Growth < BestGrowth)) {
       // This is the least amount of required padding seen so far.
       BestGrowth = Growth;
       WaterIter = IP;
